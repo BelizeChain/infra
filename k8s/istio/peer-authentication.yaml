@@ -1,0 +1,49 @@
+---
+# Global mTLS Policy - STRICT mode for all services
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: default
+  namespace: belizechain
+spec:
+  mtls:
+    mode: STRICT  # Require mTLS for all inter-service communication
+
+---
+# Pakit Public Service - PERMISSIVE mode (allow public access)
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: pakit-public
+  namespace: belizechain
+spec:
+  selector:
+    matchLabels:
+      app: pakit
+      access: public
+  mtls:
+    mode: PERMISSIVE  # Allow both mTLS and plaintext for public endpoints
+  portLevelMtls:
+    8001:
+      mode: PERMISSIVE
+
+---
+# Blockchain Node - PERMISSIVE for external P2P
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: belizechain-node
+  namespace: belizechain
+spec:
+  selector:
+    matchLabels:
+      app: belizechain-node
+  mtls:
+    mode: STRICT  # Default to STRICT
+  portLevelMtls:
+    30333:
+      mode: DISABLE  # P2P networking requires plaintext
+    9933:
+      mode: PERMISSIVE  # Allow external HTTP RPC
+    9944:
+      mode: PERMISSIVE  # Allow external WebSocket RPC

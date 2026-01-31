@@ -1,0 +1,115 @@
+{{- if .Values.kinich.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kinich
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "belizechain.labels" . | nindent 4 }}
+    app: kinich
+spec:
+  replicas: {{ .Values.kinich.replicaCount }}
+  selector:
+    matchLabels:
+      app: kinich
+  template:
+    metadata:
+      labels:
+        app: kinich
+        {{- include "belizechain.selectorLabels" . | nindent 8 }}
+    spec:
+      initContainers:
+        # Wait for PostgreSQL
+        - name: wait-for-postgres
+          image: busybox:1.35
+          command: ['sh', '-c', 'until nc -z postgres.{{ .Release.Namespace }}.svc.cluster.local 5432; do echo waiting for postgres; sleep 2; done;']
+        # Wait for Blockchain
+        - name: wait-for-blockchain
+          image: busybox:1.35
+          command: ['sh', '-c', 'until nc -z belizechain-node.{{ .Release.Namespace }}.svc.cluster.local 9944; do echo waiting for blockchain; sleep 2; done;']
+      containers:
+        - name: kinich
+          image: "{{ .Values.kinich.image.repository }}:{{ .Values.kinich.image.tag }}"
+          imagePullPolicy: {{ .Values.kinich.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.kinich.service.port }}
+              protocol: TCP
+          env:
+            - name: BLOCKCHAIN_RPC
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: BLOCKCHAIN_RPC
+            - name: POSTGRES_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: POSTGRES_HOST
+            - name: POSTGRES_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: POSTGRES_PORT
+            - name: POSTGRES_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: POSTGRES_DATABASE
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: belizechain-secrets
+                  key: POSTGRES_PASSWORD
+            - name: KINICH_MAX_CONCURRENT_JOBS
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: KINICH_MAX_CONCURRENT_JOBS
+            - name: AZURE_QUANTUM_ENABLED
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: AZURE_QUANTUM_ENABLED
+            - name: IBM_QUANTUM_ENABLED
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: IBM_QUANTUM_ENABLED
+            - name: AZURE_LOCATION
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: AZURE_LOCATION
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          resources:
+            {{- toYaml .Values.kinich.resources | nindent 12 }}
+          volumeMounts:
+            - name: kinich-data
+              mountPath: /data
+      volumes:
+        {{- if .Values.kinich.persistence.enabled }}
+        - name: kinich-data
+          persistentVolumeClaim:
+            claimName: kinich-pvc
+        {{- else }}
+        - name: kinich-data
+          emptyDir: {}
+        {{- end }}
+{{- end }}

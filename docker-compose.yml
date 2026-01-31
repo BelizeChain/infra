@@ -1,0 +1,295 @@
+version: '3.8'
+
+services:
+  # BelizeChain Blockchain Node
+  belizechain-node:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.node
+    container_name: belizechain-node
+    ports:
+      - "${P2P_PORT:-30333}:30333"  # P2P port
+      - "${RPC_PORT:-9933}:9933"    # RPC port
+      - "${WS_PORT:-9944}:9944"     # WebSocket port
+    volumes:
+      - blockchain-data:/data
+      - ./chain-spec-dev.json:/app/chain-spec.json
+    environment:
+      - RUST_LOG=${LOG_LEVEL:-info}
+      - BELIZECHAIN_CHAIN=${CHAIN:-dev}
+      - BELIZECHAIN_BASE_PATH=${BASE_PATH:-/data}
+      - NODE_NAME=${NODE_NAME:-BelizeChain-Node-1}
+    command: >
+      --base-path ${BASE_PATH:-/data}
+      --chain /app/chain-spec.json
+      --port 30333
+      --rpc-port 9933
+      --ws-port 9944
+      --rpc-cors all
+      --unsafe-rpc-external
+      --unsafe-ws-external
+      ${VALIDATOR:+--validator}
+      --alice
+    restart: unless-stopped
+    networks:
+      - belizechain
+
+  # IPFS Node for Decentralized Storage
+  ipfs:
+    image: ipfs/go-ipfs:latest
+    container_name: belizechain-ipfs
+    ports:
+      - "${IPFS_SWARM_PORT:-4001}:4001"    # IPFS swarm port
+      - "${IPFS_API_PORT:-5001}:5001"      # API port
+      - "${IPFS_GATEWAY_PORT:-8082}:8080"  # Gateway port (changed to avoid port conflict)
+    volumes:
+      - ipfs-data:/data/ipfs
+      - ipfs-staging:/export
+    environment:
+      - IPFS_PROFILE=${IPFS_PROFILE:-server}
+    restart: unless-stopped
+    networks:
+      - belizechain
+
+  # Federated Learning Aggregator (Nawal)
+  nawal:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.fl-server
+    container_name: belizechain-nawal
+    ports:
+      - "${NAWAL_API_PORT:-8080}:8080"
+    volumes:
+      - fl-models:/app/models
+      - ./nawal:/app/nawal
+    environment:
+      - NAWAL_API_HOST=${NAWAL_API_HOST:-0.0.0.0}
+      - NAWAL_API_PORT=8080
+      - NAWAL_MIN_PARTICIPANTS=${NAWAL_MIN_PARTICIPANTS:-3}
+      - NAWAL_MAX_PARTICIPANTS=${NAWAL_MAX_PARTICIPANTS:-100}
+      - IPFS_API=${IPFS_API:-http://ipfs:5001}
+      - BLOCKCHAIN_RPC=${BLOCKCHAIN_RPC:-ws://belizechain-node:9944}
+      - POSTGRES_HOST=${POSTGRES_HOST:-postgres}
+      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+      - POSTGRES_DB=${POSTGRES_DB:-belizechain}
+      - POSTGRES_USER=${POSTGRES_USER:-belizechain}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - REDIS_HOST=${REDIS_HOST:-redis}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    depends_on:
+      - ipfs
+      - belizechain-node
+      - postgres
+      - redis
+    restart: unless-stopped
+    networks:
+      - belizechain
+
+  # PostgreSQL Database for Compliance Data
+  postgres:
+    image: postgres:15-alpine
+    container_name: belizechain-postgres
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./infra/sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-belizechain}
+      - POSTGRES_USER=${POSTGRES_USER:-belizechain}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env file}
+    restart: unless-stopped
+    networks:
+      - belizechain
+
+  # Redis for Caching and Session Management
+  redis:
+    image: redis:7-alpine
+    container_name: belizechain-redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD must be set in .env file}
+    restart: unless-stopped
+    networks:
+      - belizechain
+
+  # Quantum Computing Service (Kinich)
+  kinich:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.quantum
+    container_name: belizechain-kinich
+    ports:
+      - "${KINICH_API_PORT:-8888}:8888"
+    volumes:
+      - quantum-results:/app/results
+      - ./kinich:/app/kinich
+    environment:
+      - KINICH_API_HOST=${KINICH_API_HOST:-0.0.0.0}
+      - KINICH_API_PORT=8888
+      - KINICH_MAX_CONCURRENT_JOBS=${KINICH_MAX_CONCURRENT_JOBS:-10}
+      - AZURE_QUANTUM_ENABLED=${AZURE_QUANTUM_ENABLED:-true}
+      - AZURE_QUANTUM_SUBSCRIPTION_ID=${AZURE_QUANTUM_SUBSCRIPTION_ID}
+      - AZURE_QUANTUM_RESOURCE_GROUP=${AZURE_QUANTUM_RESOURCE_GROUP}
+      - AZURE_QUANTUM_WORKSPACE=${AZURE_QUANTUM_WORKSPACE}
+      - AZURE_QUANTUM_LOCATION=${AZURE_QUANTUM_LOCATION:-eastus}
+      - IBM_QUANTUM_ENABLED=${IBM_QUANTUM_ENABLED:-false}
+      - IBM_QUANTUM_TOKEN=${IBM_QUANTUM_TOKEN}
+      - BLOCKCHAIN_RPC=${BLOCKCHAIN_RPC:-ws://belizechain-node:9944}
+      - POSTGRES_HOST=${POSTGRES_HOST:-postgres}
+      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+      - POSTGRES_DB=${POSTGRES_DB:-belizechain}
+      - POSTGRES_USER=${POSTGRES_USER:-belizechain}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    depends_on:
+      - belizechain-node
+      - postgres
+    restart: unless-stopped
+    networks:
+      - belizechain
+
+  # Blue Hole Portal (Government Dashboard)
+  blue-hole-portal:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.ui
+      args:
+        APP_NAME: blue-hole-portal
+    container_name: belizechain-blue-hole
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./ui/blue-hole-portal/src:/app/src
+      - ./ui/blue-hole-portal/public:/app/public
+    environment:
+      - NEXT_PUBLIC_BLOCKCHAIN_RPC=${NEXT_PUBLIC_BLUEHOLE_BLOCKCHAIN_RPC:-http://localhost:9933}
+      - NEXT_PUBLIC_BLOCKCHAIN_WS=${NEXT_PUBLIC_BLUEHOLE_BLOCKCHAIN_WS:-ws://localhost:9944}
+      - NEXT_PUBLIC_IPFS_GATEWAY=${NEXT_PUBLIC_IPFS_GATEWAY:-http://localhost:8082}
+      - NEXT_PUBLIC_NAWAL_API=${NEXT_PUBLIC_NAWAL_API:-http://localhost:8080}
+      - NEXT_PUBLIC_KINICH_API=${NEXT_PUBLIC_KINICH_API:-http://localhost:8888}
+    depends_on:
+      - belizechain-node
+      - ipfs
+    restart: unless-stopped
+    networks:
+      - belizechain
+
+  # Maya Wallet (Citizen Portal)
+  maya-wallet:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.ui
+      args:
+        APP_NAME: maya-wallet
+    container_name: belizechain-maya-wallet
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./ui/maya-wallet/src:/app/src
+      - ./ui/maya-wallet/public:/app/public
+    environment:
+      - NEXT_PUBLIC_BLOCKCHAIN_RPC=${NEXT_PUBLIC_MAYA_BLOCKCHAIN_RPC:-http://localhost:9933}
+      - NEXT_PUBLIC_BLOCKCHAIN_WS=${NEXT_PUBLIC_MAYA_BLOCKCHAIN_WS:-ws://localhost:9944}
+      - NEXT_PUBLIC_IPFS_GATEWAY=${NEXT_PUBLIC_IPFS_GATEWAY:-http://localhost:8082}
+      - NEXT_PUBLIC_NAWAL_API=${NEXT_PUBLIC_NAWAL_API:-http://localhost:8080}
+      - NEXT_PUBLIC_KINICH_API=${NEXT_PUBLIC_KINICH_API:-http://localhost:8888}
+      - NEXT_PUBLIC_PAKIT_API=${NEXT_PUBLIC_PAKIT_API:-http://localhost:8001}
+    depends_on:
+      - belizechain-node
+    restart: unless-stopped
+    networks:
+      - belizechain
+
+  # Kijka Explorer (Block Explorer)
+  kijka-explorer:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.ui
+      args:
+        APP_NAME: kijka-explorer
+    container_name: belizechain-kijka-explorer
+    ports:
+      - "3002:3002"
+    volumes:
+      - ./ui/kijka-explorer/src:/app/src
+      - ./ui/kijka-explorer/public:/app/public
+    environment:
+      - NEXT_PUBLIC_BLOCKCHAIN_RPC=${NEXT_PUBLIC_MAYA_BLOCKCHAIN_RPC:-http://localhost:9933}
+      - NEXT_PUBLIC_BLOCKCHAIN_WS=${NEXT_PUBLIC_MAYA_BLOCKCHAIN_WS:-ws://localhost:9944}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-belizechain}:${POSTGRES_PASSWORD}@${POSTGRES_HOST:-postgres}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-belizechain}
+    depends_on:
+      - belizechain-node
+      - postgres
+    restart: unless-stopped
+    networks:
+      - belizechain
+
+  # Monitoring with Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: belizechain-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./infra/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+    networks:
+      - belizechain
+
+  # Monitoring with Grafana
+  grafana:
+    image: grafana/grafana:latest
+    container_name: belizechain-grafana
+    ports:
+      - "3003:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./infra/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./infra/grafana/datasources:/etc/grafana/provisioning/datasources
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD must be set in .env file}
+      - GF_USERS_ALLOW_SIGN_UP=${GRAFANA_USERS_ALLOW_SIGN_UP:-false}
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+    networks:
+      - belizechain
+
+# Named volumes for persistent data
+volumes:
+  blockchain-data:
+    driver: local
+  ipfs-data:
+    driver: local
+  ipfs-staging:
+    driver: local
+  fl-models:
+    driver: local
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
+  quantum-results:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+
+# Network for all BelizeChain services
+networks:
+  belizechain:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

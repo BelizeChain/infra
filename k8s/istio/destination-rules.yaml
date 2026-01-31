@@ -1,0 +1,136 @@
+---
+# Pakit Service - Dual subsets for public/internal access
+apiVersion: v1
+kind: Service
+metadata:
+  name: pakit
+  namespace: belizechain
+  labels:
+    app: pakit
+    service: storage
+spec:
+  type: ClusterIP
+  selector:
+    app: pakit
+  ports:
+    - port: 8001
+      targetPort: 8001
+      protocol: TCP
+      name: http
+
+---
+# Pakit DestinationRule - Traffic subsets
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: pakit
+  namespace: belizechain
+spec:
+  host: pakit.belizechain.svc.cluster.local
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL  # mTLS for internal traffic
+    loadBalancer:
+      simple: ROUND_ROBIN
+    connectionPool:
+      tcp:
+        maxConnections: 100
+      http:
+        http1MaxPendingRequests: 50
+        http2MaxRequests: 100
+        maxRequestsPerConnection: 2
+    outlierDetection:
+      consecutiveErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+  subsets:
+    - name: public
+      labels:
+        access: public
+      trafficPolicy:
+        tls:
+          mode: DISABLE  # No mTLS for public access
+    - name: internal
+      labels:
+        access: internal
+      trafficPolicy:
+        tls:
+          mode: ISTIO_MUTUAL  # Require mTLS for internal
+
+---
+# Blockchain Node DestinationRule
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: belizechain-node
+  namespace: belizechain
+spec:
+  host: belizechain-node.belizechain.svc.cluster.local
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL
+    loadBalancer:
+      simple: ROUND_ROBIN
+    connectionPool:
+      tcp:
+        maxConnections: 1000  # High concurrency for RPC
+      http:
+        http1MaxPendingRequests: 500
+        http2MaxRequests: 1000
+        idleTimeout: 0s  # No timeout for WebSocket
+    outlierDetection:
+      consecutiveErrors: 10
+      interval: 60s
+      baseEjectionTime: 60s
+
+---
+# Nawal DestinationRule
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: nawal
+  namespace: belizechain
+spec:
+  host: nawal.belizechain.svc.cluster.local
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL
+    loadBalancer:
+      consistentHash:
+        httpHeaderName: "X-Participant-ID"  # Session affinity
+    connectionPool:
+      tcp:
+        maxConnections: 50
+      http:
+        http1MaxPendingRequests: 25
+        http2MaxRequests: 50
+    outlierDetection:
+      consecutiveErrors: 3
+      interval: 30s
+      baseEjectionTime: 120s  # Longer ejection for FL tasks
+
+---
+# Kinich DestinationRule
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: kinich
+  namespace: belizechain
+spec:
+  host: kinich.belizechain.svc.cluster.local
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL
+    loadBalancer:
+      simple: LEAST_CONN  # Route to least busy instance
+    connectionPool:
+      tcp:
+        maxConnections: 20  # Limit concurrent quantum jobs
+      http:
+        http1MaxPendingRequests: 10
+        http2MaxRequests: 20
+    outlierDetection:
+      consecutiveErrors: 1  # Quick ejection for expensive quantum jobs
+      interval: 30s
+      baseEjectionTime: 300s  # 5 minute ejection

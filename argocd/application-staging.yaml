@@ -1,0 +1,51 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: belizechain-staging
+  namespace: argocd
+  labels:
+    environment: staging
+    app.kubernetes.io/name: belizechain
+spec:
+  project: belizechain
+  
+  source:
+    repoURL: https://github.com/BelizeChain/infra.git
+    targetRevision: develop
+    path: ./helm/belizechain
+    helm:
+      valueFiles:
+        - values.yaml
+        - values-staging.yaml
+      parameters:
+        - name: global.environment
+          value: staging
+  
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: belizechain
+  
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  
+  revisionHistoryLimit: 10
+  
+  ignoreDifferences:
+    - group: apps
+      kind: StatefulSet
+      jsonPointers:
+        - /spec/volumeClaimTemplates

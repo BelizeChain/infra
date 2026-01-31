@@ -1,0 +1,35 @@
+# Quantum Computing Service Dockerfile
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements
+COPY requirements.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy quantum code
+COPY kinich /app/kinich
+COPY pakit /app/pakit
+
+# Create results directory
+RUN mkdir -p /app/results /app/logs
+
+# Expose quantum API port
+EXPOSE 8081
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
+ENV QUANTUM_BACKEND=qasm_simulator
+ENV API_PORT=8081
+
+# Run the quantum service
+CMD ["uvicorn", "kinich.api:app", "--host", "0.0.0.0", "--port", "8081"]

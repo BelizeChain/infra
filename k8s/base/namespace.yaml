@@ -1,0 +1,9 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: belizechain
+  labels:
+    name: belizechain
+    app.kubernetes.io/name: belizechain
+    app.kubernetes.io/part-of: belizechain-platform

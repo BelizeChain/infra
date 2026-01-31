@@ -1,0 +1,55 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: belizechain-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "belizechain.labels" . | nindent 4 }}
+data:
+  # Global Configuration
+  ENVIRONMENT: {{ .Values.global.environment | quote }}
+  DOMAIN: {{ .Values.global.domain | quote }}
+  
+  # Service Discovery
+  BLOCKCHAIN_RPC: {{ include "belizechain.blockchainRpcUrl" . | quote }}
+  BLOCKCHAIN_HTTP: {{ printf "http://belizechain-node.%s.svc.cluster.local:9933" .Release.Namespace | quote }}
+  POSTGRES_HOST: {{ printf "postgres.%s.svc.cluster.local" .Release.Namespace | quote }}
+  POSTGRES_PORT: "5432"
+  POSTGRES_DATABASE: {{ .Values.postgresql.config.database | quote }}
+  POSTGRES_USER: {{ .Values.postgresql.config.username | quote }}
+  REDIS_HOST: {{ printf "redis.%s.svc.cluster.local" .Release.Namespace | quote }}
+  REDIS_PORT: "6379"
+  IPFS_API: {{ include "belizechain.ipfsApiUrl" . | quote }}
+  IPFS_GATEWAY: {{ printf "http://ipfs.%s.svc.cluster.local:8082" .Release.Namespace | quote }}
+  NAWAL_API: {{ printf "http://nawal.%s.svc.cluster.local:%d" .Release.Namespace (.Values.nawal.service.port | int) | quote }}
+  KINICH_API: {{ printf "http://kinich.%s.svc.cluster.local:%d" .Release.Namespace (.Values.kinich.service.port | int) | quote }}
+  PAKIT_API: {{ printf "http://pakit.%s.svc.cluster.local:%d" .Release.Namespace (.Values.pakit.service.port | int) | quote }}
+  
+  # Blockchain Configuration
+  CHAIN_SPEC: {{ .Values.blockchainNode.config.chain | quote }}
+  LOG_LEVEL: {{ .Values.blockchainNode.config.logLevel | quote }}
+  VALIDATOR_MODE: {{ .Values.blockchainNode.config.validator | quote }}
+  
+  # Nawal Configuration
+  NAWAL_MIN_PARTICIPANTS: {{ .Values.nawal.config.minParticipants | quote }}
+  NAWAL_MAX_PARTICIPANTS: {{ .Values.nawal.config.maxParticipants | quote }}
+  
+  # Kinich Configuration
+  KINICH_MAX_CONCURRENT_JOBS: {{ .Values.kinich.config.maxConcurrentJobs | quote }}
+  AZURE_QUANTUM_ENABLED: {{ .Values.kinich.config.azureQuantumEnabled | quote }}
+  IBM_QUANTUM_ENABLED: {{ .Values.kinich.config.ibmQuantumEnabled | quote }}
+  AZURE_LOCATION: {{ .Values.kinich.config.azureLocation | quote }}
+  
+  # Pakit Configuration
+  PAKIT_IPFS_ENABLED: {{ .Values.pakit.config.ipfsEnabled | quote }}
+  PAKIT_ARWEAVE_ENABLED: {{ .Values.pakit.config.arweaveEnabled | quote }}
+  PAKIT_PUBLIC_MODE: "view-only"
+  PUBLIC_UPLOAD_ENABLED: "false"
+  PUBLIC_DOWNLOAD_ENABLED: "false"
+  BLOCKCHAIN_ENABLED: "true"
+  
+  # Prometheus Configuration
+  PROMETHEUS_RETENTION: {{ .Values.prometheus.config.retention | quote }}
+  
+  # IPFS Configuration
+  IPFS_PROFILE: {{ .Values.ipfs.config.profile | quote }}

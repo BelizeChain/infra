@@ -1,0 +1,101 @@
+# Staging Environment Values
+# Override default values for staging deployment
+
+global:
+  environment: staging
+  domain: staging.belizechain.org
+
+blockchainNode:
+  replicaCount: 2  # High availability for staging
+  config:
+    chain: staging
+    logLevel: info
+    validator: true
+  persistence:
+    size: 100Gi
+
+nawal:
+  replicaCount: 2
+  resources:
+    requests:
+      memory: 4Gi
+      cpu: 2000m
+    limits:
+      memory: 12Gi
+      cpu: 6000m
+
+kinich:
+  replicaCount: 2
+  resources:
+    requests:
+      memory: 4Gi
+      cpu: 2000m
+    limits:
+      memory: 12Gi
+      cpu: 6000m
+
+pakit:
+  replicaCount: 2
+  resources:
+    requests:
+      memory: 2Gi
+      cpu: 1000m
+    limits:
+      memory: 6Gi
+      cpu: 3000m
+
+prometheus:
+  config:
+    retention: 15d
+
+grafana:
+  config:
+    allowSignUp: false
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-staging
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+  hosts:
+    - host: api.staging.belizechain.org
+      paths:
+        - path: /nawal
+          pathType: Prefix
+          service: nawal
+          port: 8080
+        - path: /kinich
+          pathType: Prefix
+          service: kinich
+          port: 8888
+        - path: /pakit
+          pathType: Prefix
+          service: pakit
+          port: 8001
+  tls:
+    - secretName: belizechain-staging-tls
+      hosts:
+        - api.staging.belizechain.org
+
+secrets:
+  useExternalSecrets: true
+  externalSecretsProvider: vault
+  vaultAddress: "https://vault.staging.belizechain.org"
+
+autoscaling:
+  nawal:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+  kinich:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+  pakit:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+
+networkPolicies:
+  enabled: true

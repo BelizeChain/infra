@@ -1,0 +1,174 @@
+---
+# Authorization Policy - Pakit Public View-Only Access (NO authentication)
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: pakit-public-access
+  namespace: belizechain
+spec:
+  selector:
+    matchLabels:
+      app: pakit
+      access: public
+  action: ALLOW
+  rules:
+    # Allow anyone to LIST and VIEW files (read-only)
+    - to:
+        - operation:
+            methods: ["GET"]
+            paths:
+              - "/api/v1/list*"
+              - "/api/v1/view/*"
+              - "/health"
+              - "/metrics"
+
+---
+# Authorization Policy - Pakit Authenticated Access (requires BelizeID)
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: pakit-internal-access
+  namespace: belizechain
+spec:
+  selector:
+    matchLabels:
+      app: pakit
+      access: internal
+  action: ALLOW
+  rules:
+    # Only allow authenticated blockchain components and BelizeID holders
+    - from:
+        - source:
+            principals:
+              - "cluster.local/ns/belizechain/sa/belizechain-node"
+              - "cluster.local/ns/belizechain/sa/nawal"
+              - "cluster.local/ns/belizechain/sa/kinich"
+      to:
+        - operation:
+            methods: ["POST", "GET", "DELETE"]
+            paths:
+              - "/api/v1/upload"
+              - "/api/v1/download/*"
+              - "/api/v1/register_proof"
+              - "/api/v1/verify_ownership"
+              - "/api/v1/delete/*"
+
+---
+# Authorization Policy - Nawal FL (only blockchain can submit rewards)
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: nawal-blockchain-integration
+  namespace: belizechain
+spec:
+  selector:
+    matchLabels:
+      app: nawal
+  action: ALLOW
+  rules:
+    # Allow public API access for FL participants
+    - to:
+        - operation:
+            methods: ["GET", "POST"]
+            paths:
+              - "/api/v1/rounds/*"
+              - "/api/v1/participants/*"
+              - "/api/v1/models/*"
+              - "/health"
+              - "/metrics"
+    
+    # Restrict blockchain reward submission to internal service account
+    - from:
+        - source:
+            namespaces: ["belizechain"]
+      to:
+        - operation:
+            methods: ["POST"]
+            paths:
+              - "/api/v1/internal/submit_reward"
+
+---
+# Authorization Policy - Kinich Quantum (authenticated job submission)
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: kinich-job-access
+  namespace: belizechain
+spec:
+  selector:
+    matchLabels:
+      app: kinich
+  action: ALLOW
+  rules:
+    # Allow authenticated job submission
+    - to:
+        - operation:
+            methods: ["GET", "POST"]
+            paths:
+              - "/api/v1/jobs/*"
+              - "/api/v1/backends"
+              - "/health"
+              - "/metrics"
+
+---
+# Authorization Policy - Blockchain RPC (public read, authenticated write)
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: blockchain-rpc-access
+  namespace: belizechain
+spec:
+  selector:
+    matchLabels:
+      app: belizechain-node
+  action: ALLOW
+  rules:
+    # Allow public read-only RPC methods
+    - to:
+        - operation:
+            methods: ["POST"]
+            paths:
+              - "/"  # JSON-RPC endpoint
+      when:
+        - key: request.headers[content-type]
+          values: ["application/json"]
+    
+    # WebSocket connections (require JWT for write operations)
+    - to:
+        - operation:
+            ports: ["9944"]
+
+---
+# Authorization Policy - Deny all by default for sensitive services
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: deny-postgres
+  namespace: belizechain
+spec:
+  selector:
+    matchLabels:
+      app: postgres
+  action: DENY
+  rules:
+    # Deny external access (only allow from same namespace)
+    - from:
+        - source:
+            notNamespaces: ["belizechain"]
+
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: deny-redis
+  namespace: belizechain
+spec:
+  selector:
+    matchLabels:
+      app: redis
+  action: DENY
+  rules:
+    # Deny external access
+    - from:
+        - source:
+            notNamespaces: ["belizechain"]

@@ -1,0 +1,50 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: belizechain
+  namespace: argocd
+spec:
+  description: BelizeChain Sovereign Infrastructure Project
+  
+  sourceRepos:
+    - https://github.com/belizechain/belizechain.git
+  
+  destinations:
+    - namespace: belizechain
+      server: https://kubernetes.default.svc
+    - namespace: argocd
+      server: https://kubernetes.default.svc
+  
+  clusterResourceWhitelist:
+    - group: ''
+      kind: Namespace
+    - group: ''
+      kind: PersistentVolume
+    - group: storage.k8s.io
+      kind: StorageClass
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRole
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRoleBinding
+  
+  namespaceResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  
+  roles:
+    - name: developer
+      description: Developers can view and sync applications
+      policies:
+        - p, proj:belizechain:developer, applications, get, belizechain/*, allow
+        - p, proj:belizechain:developer, applications, sync, belizechain/*-dev, allow
+        - p, proj:belizechain:developer, applications, sync, belizechain/*-staging, allow
+      groups:
+        - belizechain-developers
+    
+    - name: admin
+      description: Admins have full access
+      policies:
+        - p, proj:belizechain:admin, applications, *, belizechain/*, allow
+      groups:
+        - belizechain-admins

@@ -1,0 +1,148 @@
+# Helm Values - Unified Single-Node Deployment
+# Use for development or low-resource production (all components co-located)
+
+global:
+  environment: development
+  domain: localhost
+
+# Blockchain node
+blockchain:
+  enabled: true
+  replicas: 1
+  nodeSelector: {}  # No specific node requirements
+  resources:
+    requests:
+      memory: "2Gi"
+      cpu: "1000m"
+    limits:
+      memory: "8Gi"
+      cpu: "4000m"
+
+# Nawal AI (CPU-only, reduced resources)
+nawal:
+  enabled: true
+  replicas: 1
+  gpu:
+    enabled: false  # No GPU for unified deployment
+  nodeSelector: {}
+  resources:
+    requests:
+      memory: "2Gi"
+      cpu: "1000m"
+    limits:
+      memory: "8Gi"
+      cpu: "4000m"
+  env:
+    NAWAL_MIN_PARTICIPANTS: "2"
+    NAWAL_MAX_PARTICIPANTS: "10"
+    MODEL_TYPE: "belizechain-llm-small"
+    MODEL_HIDDEN_SIZE: "512"  # Smaller model
+    MODEL_NUM_LAYERS: "8"
+  persistence:
+    models:
+      enabled: true
+      size: 50Gi
+      storageClass: standard
+
+# Kinich Quantum (simulator-only)
+kinich:
+  enabled: true
+  replicas: 1
+  nodeSelector: {}
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+    limits:
+      memory: "4Gi"
+      cpu: "2000m"
+  env:
+    AZURE_QUANTUM_ENABLED: "false"  # Disable cloud backends
+    IBM_QUANTUM_ENABLED: "false"
+    KINICH_DEFAULT_BACKEND: "qasm_simulator"  # Local simulator only
+    KINICH_MAX_CONCURRENT_JOBS: "5"
+
+# Pakit Storage
+pakit:
+  enabled: true
+  replicas: 1
+  nodeSelector: {}
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+    limits:
+      memory: "4Gi"
+      cpu: "2000m"
+  persistence:
+    storage:
+      enabled: true
+      size: 100Gi
+      storageClass: standard
+
+# PostgreSQL (single instance)
+postgres:
+  enabled: true
+  replicas: 1
+  nodeSelector: {}
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+    limits:
+      memory: "4Gi"
+      cpu: "2000m"
+  persistence:
+    size: 50Gi
+    storageClass: standard
+
+# Redis (single instance)
+redis:
+  enabled: true
+  replicas: 1
+  nodeSelector: {}
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
+
+# IPFS (single instance)
+ipfs:
+  enabled: true
+  replicas: 1
+  nodeSelector: {}
+  persistence:
+    size: 100Gi
+    storageClass: standard
+
+# UI Applications (all enabled)
+ui:
+  blueHolePortal:
+    enabled: true
+    replicas: 1
+  mayaWallet:
+    enabled: true
+    replicas: 1
+  kijkaExplorer:
+    enabled: true
+    replicas: 1
+
+# Istio (disabled for development simplicity)
+istio:
+  enabled: false
+  injection: disabled
+
+# Monitoring (optional)
+monitoring:
+  prometheus:
+    enabled: true
+    storage: 20Gi
+  grafana:
+    enabled: true
+
+# Pod anti-affinity (disabled - allow co-location)
+podAntiAffinity:
+  enabled: false

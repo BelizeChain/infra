@@ -1,0 +1,287 @@
+---
+# Blockchain Node - HTTP RPC
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: belizechain-node-http
+  namespace: belizechain
+  labels:
+    app: belizechain-node
+    protocol: http-rpc
+spec:
+  hosts:
+    - "rpc.belizechain.bz"
+    - "belizechain-node.belizechain.svc.cluster.local"
+  gateways:
+    - belizechain-gateway
+    - mesh  # Internal mesh traffic
+  http:
+    - match:
+        - port: 9933
+      route:
+        - destination:
+            host: belizechain-node.belizechain.svc.cluster.local
+            port:
+              number: 9933
+      timeout: 60s
+      retries:
+        attempts: 3
+        perTryTimeout: 20s
+        retryOn: 5xx,reset,connect-failure,refused-stream
+
+---
+# Blockchain Node - WebSocket RPC
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: belizechain-node-ws
+  namespace: belizechain
+  labels:
+    app: belizechain-node
+    protocol: websocket
+spec:
+  hosts:
+    - "rpc.belizechain.bz"
+    - "belizechain-node.belizechain.svc.cluster.local"
+  gateways:
+    - belizechain-gateway
+    - mesh
+  http:
+    - match:
+        - port: 9944
+      route:
+        - destination:
+            host: belizechain-node.belizechain.svc.cluster.local
+            port:
+              number: 9944
+      timeout: 0s  # No timeout for WebSocket connections
+      websocketUpgrade: true
+
+---
+# Nawal AI Service
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: nawal-api
+  namespace: belizechain
+  labels:
+    app: nawal
+    component: api
+spec:
+  hosts:
+    - "ai.belizechain.bz"
+    - "nawal.belizechain.svc.cluster.local"
+  gateways:
+    - belizechain-gateway
+    - mesh
+  http:
+    - match:
+        - uri:
+            prefix: "/api/v1"
+        - uri:
+            prefix: "/health"
+        - uri:
+            prefix: "/metrics"
+      route:
+        - destination:
+            host: nawal.belizechain.svc.cluster.local
+            port:
+              number: 8080
+      timeout: 300s  # 5 minutes for long-running FL tasks
+      retries:
+        attempts: 2
+        perTryTimeout: 150s
+        retryOn: 5xx,reset
+
+---
+# Kinich Quantum Service
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: kinich-api
+  namespace: belizechain
+  labels:
+    app: kinich
+    component: api
+spec:
+  hosts:
+    - "quantum.belizechain.bz"
+    - "kinich.belizechain.svc.cluster.local"
+  gateways:
+    - belizechain-gateway
+    - mesh
+  http:
+    - match:
+        - uri:
+            prefix: "/api/v1"
+        - uri:
+            prefix: "/health"
+        - uri:
+            prefix: "/metrics"
+      route:
+        - destination:
+            host: kinich.belizechain.svc.cluster.local
+            port:
+              number: 8888
+      timeout: 600s  # 10 minutes for quantum job execution
+      retries:
+        attempts: 1  # No retries for quantum jobs (expensive)
+        perTryTimeout: 600s
+
+---
+# Pakit Storage - Public View-Only Access (NO authentication)
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: pakit-public-api
+  namespace: belizechain
+  labels:
+    app: pakit
+    access: public
+spec:
+  hosts:
+    - "storage.belizechain.bz"
+    - "pakit-public.belizechain.svc.cluster.local"
+  gateways:
+    - pakit-public-gateway
+    - mesh
+  http:
+    # Public view-only endpoints (no auth required)
+    - match:
+        - uri:
+            prefix: "/api/v1/list"
+        - uri:
+            prefix: "/api/v1/view"
+        - uri:
+            exact: "/health"
+      route:
+        - destination:
+            host: pakit.belizechain.svc.cluster.local
+            port:
+              number: 8001
+            subset: public
+      timeout: 30s
+      retries:
+        attempts: 3
+        perTryTimeout: 10s
+        retryOn: 5xx,reset
+
+---
+# Pakit Storage - Authenticated Access (requires BelizeID)
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: pakit-internal-api
+  namespace: belizechain
+  labels:
+    app: pakit
+    access: authenticated
+spec:
+  hosts:
+    - "pakit-internal.belizechain.svc.cluster.local"
+  gateways:
+    - mesh  # Only internal mesh traffic
+  http:
+    # Authenticated endpoints (upload, download, blockchain proofs)
+    - match:
+        - uri:
+            prefix: "/api/v1/upload"
+        - uri:
+            prefix: "/api/v1/download"
+        - uri:
+            prefix: "/api/v1/register_proof"
+        - uri:
+            prefix: "/api/v1/verify_ownership"
+        - uri:
+            prefix: "/api/v1/delete"
+      route:
+        - destination:
+            host: pakit.belizechain.svc.cluster.local
+            port:
+              number: 8001
+            subset: internal
+      timeout: 120s
+
+---
+# Blue Hole Portal (Government Dashboard)
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: blue-hole-portal
+  namespace: belizechain
+  labels:
+    app: blue-hole-portal
+    component: ui
+spec:
+  hosts:
+    - "gov.belizechain.bz"
+    - "blue-hole-portal.belizechain.svc.cluster.local"
+  gateways:
+    - belizechain-gateway
+    - mesh
+  http:
+    - match:
+        - uri:
+            prefix: "/"
+      route:
+        - destination:
+            host: blue-hole-portal.belizechain.svc.cluster.local
+            port:
+              number: 3000
+      timeout: 30s
+
+---
+# Maya Wallet (Citizen/Business)
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: maya-wallet
+  namespace: belizechain
+  labels:
+    app: maya-wallet
+    component: ui
+spec:
+  hosts:
+    - "wallet.belizechain.bz"
+    - "maya-wallet.belizechain.svc.cluster.local"
+  gateways:
+    - belizechain-gateway
+    - mesh
+  http:
+    - match:
+        - uri:
+            prefix: "/"
+      route:
+        - destination:
+            host: maya-wallet.belizechain.svc.cluster.local
+            port:
+              number: 3001
+      timeout: 30s
+
+---
+# Kijka Explorer (Block Explorer)
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: kijka-explorer
+  namespace: belizechain
+  labels:
+    app: kijka-explorer
+    component: ui
+spec:
+  hosts:
+    - "explorer.belizechain.bz"
+    - "kijka-explorer.belizechain.svc.cluster.local"
+  gateways:
+    - belizechain-gateway
+    - mesh
+  http:
+    - match:
+        - uri:
+            prefix: "/"
+      route:
+        - destination:
+            host: kijka-explorer.belizechain.svc.cluster.local
+            port:
+              number: 3002
+      timeout: 30s

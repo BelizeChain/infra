@@ -1,0 +1,60 @@
+# Development Environment Values
+# Override default values for development deployment
+
+global:
+  environment: dev
+  domain: dev.belizechain.local
+
+blockchainNode:
+  replicaCount: 1
+  config:
+    chain: dev
+    logLevel: debug
+    validator: true
+  persistence:
+    size: 50Gi  # Smaller for dev
+
+nawal:
+  replicaCount: 1  # Single replica for dev
+  config:
+    minParticipants: 2  # Lower for testing
+
+kinich:
+  replicaCount: 1  # Single replica for dev
+
+pakit:
+  replicaCount: 1  # Single replica for dev
+
+prometheus:
+  config:
+    retention: 7d  # Shorter retention for dev
+
+grafana:
+  config:
+    allowSignUp: true  # Allow dev testing
+
+ingress:
+  enabled: true
+  hosts:
+    - host: dev.belizechain.local
+      paths:
+        - path: /nawal
+          pathType: Prefix
+          service: nawal
+          port: 8080
+        - path: /kinich
+          pathType: Prefix
+          service: kinich
+          port: 8888
+        - path: /pakit
+          pathType: Prefix
+          service: pakit
+          port: 8001
+
+autoscaling:
+  nawal:
+    enabled: false
+  kinich:
+    enabled: false
+  pakit:
+    enabled: false

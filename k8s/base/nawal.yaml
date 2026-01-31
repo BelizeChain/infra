@@ -1,0 +1,259 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nawal
+  namespace: belizechain
+  labels:
+    app: nawal
+    app.kubernetes.io/name: nawal
+    app.kubernetes.io/component: ai
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+  selector:
+    app: nawal
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nawal
+  namespace: belizechain
+  labels:
+    app: nawal
+    app.kubernetes.io/name: nawal
+    app.kubernetes.io/component: ai
+    app.kubernetes.io/part-of: belizechain-platform
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nawal
+  template:
+    metadata:
+      labels:
+        app: nawal
+        app.kubernetes.io/name: nawal
+        app.kubernetes.io/component: ai
+    spec:
+      # Init containers - strict dependency validation
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox:1.35
+          command:
+            - 'sh'
+            - '-c'
+            - |
+              echo "Waiting for PostgreSQL at $POSTGRES_HOST:$POSTGRES_PORT..."
+              until nc -z $POSTGRES_HOST $POSTGRES_PORT; do
+                echo "PostgreSQL not ready, sleeping 2s..."
+                sleep 2
+              done
+              echo "PostgreSQL is ready!"
+          env:
+            - name: POSTGRES_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: POSTGRES_HOST
+            - name: POSTGRES_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: POSTGRES_PORT
+        
+        - name: wait-for-redis
+          image: busybox:1.35
+          command:
+            - 'sh'
+            - '-c'
+            - |
+              echo "Waiting for Redis at $REDIS_HOST:$REDIS_PORT..."
+              until nc -z $REDIS_HOST $REDIS_PORT; do
+                echo "Redis not ready, sleeping 2s..."
+                sleep 2
+              done
+              echo "Redis is ready!"
+          env:
+            - name: REDIS_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: REDIS_HOST
+            - name: REDIS_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: REDIS_PORT
+        
+        - name: wait-for-ipfs
+          image: busybox:1.35
+          command:
+            - 'sh'
+            - '-c'
+            - |
+              echo "Waiting for IPFS at ipfs.belizechain.svc.cluster.local:5001..."
+              until nc -z ipfs.belizechain.svc.cluster.local 5001; do
+                echo "IPFS not ready, sleeping 2s..."
+                sleep 2
+              done
+              echo "IPFS is ready!"
+        
+        - name: wait-for-blockchain
+          image: busybox:1.35
+          command:
+            - 'sh'
+            - '-c'
+            - |
+              echo "Waiting for BelizeChain RPC at belizechain-node.belizechain.svc.cluster.local:9944..."
+              until nc -z belizechain-node.belizechain.svc.cluster.local 9944; do
+                echo "Blockchain not ready, sleeping 2s..."
+                sleep 2
+              done
+              echo "Blockchain is ready!"
+      
+      containers:
+        - name: nawal
+          image: belizechain/nawal:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: NAWAL_API_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: NAWAL_API_HOST
+            - name: NAWAL_API_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: NAWAL_API_PORT
+            - name: NAWAL_MIN_PARTICIPANTS
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: NAWAL_MIN_PARTICIPANTS
+            - name: NAWAL_MAX_PARTICIPANTS
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: NAWAL_MAX_PARTICIPANTS
+            - name: BLOCKCHAIN_RPC
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: BLOCKCHAIN_RPC
+            - name: IPFS_API
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: IPFS_API
+            - name: POSTGRES_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: POSTGRES_HOST
+            - name: POSTGRES_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: POSTGRES_PORT
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: POSTGRES_DB
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: belizechain-secrets
+                  key: POSTGRES_PASSWORD
+            - name: REDIS_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: REDIS_HOST
+            - name: REDIS_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: REDIS_PORT
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: belizechain-secrets
+                  key: REDIS_PASSWORD
+            - name: NAWAL_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: belizechain-secrets
+                  key: NAWAL_API_KEY
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: belizechain-secrets
+                  key: JWT_SECRET
+            - name: ENCRYPTION_SALT
+              valueFrom:
+                secretKeyRef:
+                  name: belizechain-secrets
+                  key: ENCRYPTION_SALT
+          volumeMounts:
+            - name: models
+              mountPath: /app/models
+          resources:
+            requests:
+              memory: "2Gi"
+              cpu: "1000m"
+            limits:
+              memory: "8Gi"
+              cpu: "4000m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+      volumes:
+        - name: models
+          persistentVolumeClaim:
+            claimName: fl-models
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: fl-models
+  namespace: belizechain
+  labels:
+    app: nawal
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: standard

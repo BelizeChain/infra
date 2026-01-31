@@ -1,0 +1,31 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: belizechain
+
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - secret.yaml
+  - blockchain-node.yaml
+  - postgres.yaml
+  - redis.yaml
+  - ipfs.yaml
+  - nawal.yaml
+  - kinich.yaml
+  - pakit.yaml
+  - monitoring.yaml
+
+commonLabels:
+  app.kubernetes.io/managed-by: kustomize
+  app.kubernetes.io/part-of: belizechain-platform
+
+images:
+  - name: belizechain/node
+    newTag: latest
+  - name: belizechain/nawal
+    newTag: latest
+  - name: belizechain/kinich
+    newTag: latest
+  - name: belizechain/pakit
+    newTag: latest

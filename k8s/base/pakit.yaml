@@ -1,0 +1,138 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pakit
+  namespace: belizechain
+  labels:
+    app: pakit
+    app.kubernetes.io/name: pakit
+    app.kubernetes.io/component: storage
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8001
+      targetPort: 8001
+      protocol: TCP
+  selector:
+    app: pakit
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pakit
+  namespace: belizechain
+  labels:
+    app: pakit
+    app.kubernetes.io/name: pakit
+    app.kubernetes.io/component: storage
+    app.kubernetes.io/part-of: belizechain-platform
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: pakit
+  template:
+    metadata:
+      labels:
+        app: pakit
+        app.kubernetes.io/name: pakit
+        app.kubernetes.io/component: storage
+    spec:
+      containers:
+        - name: pakit
+          image: belizechain/pakit:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8001
+              protocol: TCP
+          env:
+            - name: PAKIT_API_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: PAKIT_API_HOST
+            - name: PAKIT_API_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: PAKIT_API_PORT
+            - name: PAKIT_STORAGE_DIR
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: PAKIT_STORAGE_DIR
+            - name: IPFS_ENABLED
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: IPFS_ENABLED
+            - name: IPFS_API
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: IPFS_API
+            - name: ARWEAVE_ENABLED
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: ARWEAVE_ENABLED
+            - name: PAKIT_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: belizechain-secrets
+                  key: PAKIT_API_KEY
+            - name: ARWEAVE_WALLET_PATH
+              valueFrom:
+                secretKeyRef:
+                  name: belizechain-secrets
+                  key: ARWEAVE_WALLET_PATH
+          volumeMounts:
+            - name: pakit-storage
+              mountPath: /app/storage
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "500m"
+            limits:
+              memory: "4Gi"
+              cpu: "2000m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8001
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8001
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+      volumes:
+        - name: pakit-storage
+          persistentVolumeClaim:
+            claimName: pakit-storage
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pakit-storage
+  namespace: belizechain
+  labels:
+    app: pakit
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: standard

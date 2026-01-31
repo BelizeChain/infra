@@ -1,0 +1,27 @@
+{{- if .Values.blockchainNode.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: belizechain-node
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "belizechain.labels" . | nindent 4 }}
+    app: belizechain-node
+spec:
+  type: {{ .Values.blockchainNode.service.type }}
+  ports:
+    - port: {{ .Values.blockchainNode.service.p2pPort }}
+      targetPort: p2p
+      protocol: TCP
+      name: p2p
+    - port: {{ .Values.blockchainNode.service.rpcPort }}
+      targetPort: rpc
+      protocol: TCP
+      name: rpc
+    - port: {{ .Values.blockchainNode.service.wsPort }}
+      targetPort: ws
+      protocol: TCP
+      name: ws
+  selector:
+    app: belizechain-node
+{{- end }}

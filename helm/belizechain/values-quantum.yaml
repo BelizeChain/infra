@@ -1,0 +1,136 @@
+# Helm Values - Quantum-Ready Node Pool
+# Use for quantum workload orchestration (Kinich)
+
+global:
+  environment: production
+  domain: belizechain.bz
+
+# Blockchain node
+blockchain:
+  enabled: true
+  replicas: 1
+  nodeSelector:
+    workload: standard
+
+# Nawal AI (minimal resources when not primary workload)
+nawal:
+  enabled: true
+  replicas: 1
+  nodeSelector:
+    workload: standard
+  resources:
+    requests:
+      memory: "4Gi"
+      cpu: "2000m"
+    limits:
+      memory: "16Gi"
+      cpu: "8000m"
+
+# Kinich Quantum (quantum-ready node pool)
+kinich:
+  enabled: true
+  replicas: 3  # Higher replicas for parallel quantum jobs
+  
+  # Node affinity for quantum-ready nodes
+  nodeSelector:
+    quantum-ready: "true"
+    cloud-credentials: azure
+  
+  # Toleration for quantum node taint
+  tolerations:
+    - key: quantum/azure
+      operator: Equal
+      value: "true"
+      effect: NoSchedule
+  
+  resources:
+    requests:
+      memory: "4Gi"
+      cpu: "2000m"
+    limits:
+      memory: "16Gi"
+      cpu: "8000m"
+  
+  # Quantum backend configuration
+  env:
+    # Azure Quantum (primary backend)
+    AZURE_QUANTUM_ENABLED: "true"
+    AZURE_QUANTUM_LOCATION: "eastus"
+    KINICH_MAX_CONCURRENT_JOBS: "20"
+    
+    # IBM Quantum (fallback backend)
+    IBM_QUANTUM_ENABLED: "true"
+    IBM_QUANTUM_HUB: "ibm-q"
+    IBM_QUANTUM_GROUP: "open"
+    
+    # Qiskit simulator (always available)
+    KINICH_DEFAULT_BACKEND: "qasm_simulator"
+    
+    # Circuit optimization
+    CIRCUIT_OPTIMIZATION_LEVEL: "3"
+    MAX_QUBITS: "127"
+    MAX_SHOTS: "100000"
+    
+    # Error mitigation
+    ZNE_ENABLED: "true"
+    ZNE_NOISE_FACTORS: "[1,2,3]"
+    READOUT_MITIGATION_ENABLED: "true"
+  
+  # Secrets for quantum cloud providers
+  secrets:
+    azure:
+      subscriptionId: ${AZURE_QUANTUM_SUBSCRIPTION_ID}
+      resourceGroup: ${AZURE_QUANTUM_RESOURCE_GROUP}
+      workspace: ${AZURE_QUANTUM_WORKSPACE}
+    ibm:
+      token: ${IBM_QUANTUM_TOKEN}
+  
+  # Persistent storage for results
+  persistence:
+    results:
+      enabled: true
+      size: 100Gi
+      storageClass: ssd-retain
+    cache:
+      enabled: true
+      size: 50Gi
+      storageClass: ssd
+
+# Pakit Storage
+pakit:
+  enabled: true
+  replicas: 2
+  nodeSelector:
+    storage: "high-iops"
+
+# PostgreSQL (for job metadata)
+postgres:
+  enabled: true
+  replicas: 1
+  nodeSelector:
+    workload: database
+  resources:
+    requests:
+      memory: "8Gi"  # Higher memory for quantum job metadata
+      cpu: "4000m"
+    limits:
+      memory: "32Gi"
+      cpu: "16000m"
+  persistence:
+    size: 500Gi
+    storageClass: ssd-retain
+
+# Redis (optional for kinich)
+redis:
+  enabled: false  # Kinich doesn't require Redis
+
+# IPFS
+ipfs:
+  enabled: true
+  replicas: 1
+
+# Istio configuration
+istio:
+  enabled: true
+  injection: enabled
+  mtls: STRICT

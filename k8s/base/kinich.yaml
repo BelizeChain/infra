@@ -1,0 +1,183 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kinich
+  namespace: belizechain
+  labels:
+    app: kinich
+    app.kubernetes.io/name: kinich
+    app.kubernetes.io/component: quantum
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8888
+      targetPort: 8888
+      protocol: TCP
+  selector:
+    app: kinich
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kinich
+  namespace: belizechain
+  labels:
+    app: kinich
+    app.kubernetes.io/name: kinich
+    app.kubernetes.io/component: quantum
+    app.kubernetes.io/part-of: belizechain-platform
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: kinich
+  template:
+    metadata:
+      labels:
+        app: kinich
+        app.kubernetes.io/name: kinich
+        app.kubernetes.io/component: quantum
+    spec:
+      containers:
+        - name: kinich
+          image: belizechain/kinich:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8888
+              protocol: TCP
+          env:
+            - name: KINICH_API_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: KINICH_API_HOST
+            - name: KINICH_API_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: KINICH_API_PORT
+            - name: KINICH_MAX_CONCURRENT_JOBS
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: KINICH_MAX_CONCURRENT_JOBS
+            - name: AZURE_QUANTUM_ENABLED
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: AZURE_QUANTUM_ENABLED
+            - name: IBM_QUANTUM_ENABLED
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: IBM_QUANTUM_ENABLED
+            - name: AZURE_QUANTUM_LOCATION
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: AZURE_QUANTUM_LOCATION
+            - name: BLOCKCHAIN_RPC
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: BLOCKCHAIN_RPC
+            - name: POSTGRES_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: POSTGRES_HOST
+            - name: POSTGRES_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: POSTGRES_PORT
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: POSTGRES_DB
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: belizechain-secrets
+                  key: POSTGRES_PASSWORD
+            - name: AZURE_QUANTUM_SUBSCRIPTION_ID
+              valueFrom:
+                secretKeyRef:
+                  name: belizechain-secrets
+                  key: AZURE_QUANTUM_SUBSCRIPTION_ID
+            - name: AZURE_QUANTUM_RESOURCE_GROUP
+              valueFrom:
+                secretKeyRef:
+                  name: belizechain-secrets
+                  key: AZURE_QUANTUM_RESOURCE_GROUP
+            - name: AZURE_QUANTUM_WORKSPACE
+              valueFrom:
+                secretKeyRef:
+                  name: belizechain-secrets
+                  key: AZURE_QUANTUM_WORKSPACE
+            - name: IBM_QUANTUM_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: belizechain-secrets
+                  key: IBM_QUANTUM_TOKEN
+            - name: KINICH_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: belizechain-secrets
+                  key: KINICH_API_KEY
+          volumeMounts:
+            - name: quantum-results
+              mountPath: /app/results
+          resources:
+            requests:
+              memory: "2Gi"
+              cpu: "1000m"
+            limits:
+              memory: "8Gi"
+              cpu: "4000m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8888
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8888
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+      volumes:
+        - name: quantum-results
+          persistentVolumeClaim:
+            claimName: quantum-results
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: quantum-results
+  namespace: belizechain
+  labels:
+    app: kinich
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: standard

@@ -1,0 +1,62 @@
+{{- if .Values.nawal.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nawal
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "belizechain.labels" . | nindent 4 }}
+    app: nawal
+spec:
+  type: {{ .Values.nawal.service.type }}
+  ports:
+    - port: {{ .Values.nawal.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app: nawal
+{{- end }}
+
+{{- if .Values.kinich.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kinich
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "belizechain.labels" . | nindent 4 }}
+    app: kinich
+spec:
+  type: {{ .Values.kinich.service.type }}
+  ports:
+    - port: {{ .Values.kinich.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app: kinich
+{{- end }}
+
+{{- if .Values.pakit.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pakit
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "belizechain.labels" . | nindent 4 }}
+    app: pakit
+spec:
+  type: {{ .Values.pakit.service.type }}
+  ports:
+    - port: {{ .Values.pakit.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app: pakit
+{{- end }}

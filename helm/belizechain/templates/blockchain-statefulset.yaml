@@ -1,0 +1,98 @@
+{{- if .Values.blockchainNode.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: belizechain-node
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "belizechain.labels" . | nindent 4 }}
+    app: belizechain-node
+spec:
+  serviceName: belizechain-node
+  replicas: {{ .Values.blockchainNode.replicaCount }}
+  selector:
+    matchLabels:
+      app: belizechain-node
+  template:
+    metadata:
+      labels:
+        app: belizechain-node
+        {{- include "belizechain.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: belizechain-node
+          image: "{{ .Values.blockchainNode.image.repository }}:{{ .Values.blockchainNode.image.tag }}"
+          imagePullPolicy: {{ .Values.blockchainNode.image.pullPolicy }}
+          ports:
+            - name: p2p
+              containerPort: {{ .Values.blockchainNode.service.p2pPort }}
+              protocol: TCP
+            - name: rpc
+              containerPort: {{ .Values.blockchainNode.service.rpcPort }}
+              protocol: TCP
+            - name: ws
+              containerPort: {{ .Values.blockchainNode.service.wsPort }}
+              protocol: TCP
+          env:
+            - name: CHAIN_SPEC
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: CHAIN_SPEC
+            - name: LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: LOG_LEVEL
+          command:
+            - /usr/local/bin/belizechain-node
+            - --chain
+            - $(CHAIN_SPEC)
+            - --base-path
+            - /data
+            - --port
+            - "{{ .Values.blockchainNode.service.p2pPort }}"
+            - --rpc-port
+            - "{{ .Values.blockchainNode.service.rpcPort }}"
+            - --ws-port
+            - "{{ .Values.blockchainNode.service.wsPort }}"
+            - --rpc-external
+            - --ws-external
+            - --rpc-cors
+            - all
+            {{- if .Values.blockchainNode.config.validator }}
+            - --validator
+            {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.blockchainNode.service.rpcPort }}
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.blockchainNode.service.rpcPort }}
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          resources:
+            {{- toYaml .Values.blockchainNode.resources | nindent 12 }}
+          volumeMounts:
+            - name: blockchain-data
+              mountPath: /data
+  {{- if .Values.blockchainNode.persistence.enabled }}
+  volumeClaimTemplates:
+    - metadata:
+        name: blockchain-data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        storageClassName: {{ .Values.blockchainNode.persistence.storageClass }}
+        resources:
+          requests:
+            storage: {{ .Values.blockchainNode.persistence.size }}
+  {{- else }}
+      volumes:
+        - name: blockchain-data
+          emptyDir: {}
+  {{- end }}
+{{- end }}

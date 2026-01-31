@@ -1,0 +1,193 @@
+# Production Environment Values
+# Override default values for production deployment
+
+global:
+  environment: production
+  domain: belizechain.org
+  storageClass: fast-ssd  # Premium storage for production
+
+blockchainNode:
+  replicaCount: 3  # Minimum 3 for high availability
+  config:
+    chain: mainnet
+    logLevel: warn
+    validator: true
+  resources:
+    requests:
+      memory: 8Gi
+      cpu: 4000m
+    limits:
+      memory: 16Gi
+      cpu: 8000m
+  persistence:
+    size: 500Gi  # Large storage for mainnet
+    storageClass: fast-ssd
+
+nawal:
+  replicaCount: 3
+  resources:
+    requests:
+      memory: 8Gi
+      cpu: 4000m
+    limits:
+      memory: 16Gi
+      cpu: 8000m
+  persistence:
+    size: 200Gi
+    storageClass: fast-ssd
+
+kinich:
+  replicaCount: 3
+  resources:
+    requests:
+      memory: 8Gi
+      cpu: 4000m
+    limits:
+      memory: 16Gi
+      cpu: 8000m
+  persistence:
+    size: 100Gi
+    storageClass: fast-ssd
+  config:
+    maxConcurrentJobs: 50
+
+pakit:
+  replicaCount: 3
+  resources:
+    requests:
+      memory: 4Gi
+      cpu: 2000m
+    limits:
+      memory: 8Gi
+      cpu: 4000m
+  persistence:
+    size: 1Ti  # 1 terabyte for production storage
+    storageClass: fast-ssd
+
+postgresql:
+  resources:
+    requests:
+      memory: 8Gi
+      cpu: 4000m
+    limits:
+      memory: 16Gi
+      cpu: 8000m
+  persistence:
+    size: 500Gi
+    storageClass: fast-ssd
+
+redis:
+  resources:
+    requests:
+      memory: 4Gi
+      cpu: 2000m
+    limits:
+      memory: 8Gi
+      cpu: 4000m
+  persistence:
+    size: 50Gi
+    storageClass: fast-ssd
+
+ipfs:
+  resources:
+    requests:
+      memory: 4Gi
+      cpu: 2000m
+    limits:
+      memory: 8Gi
+      cpu: 4000m
+  persistence:
+    data:
+      size: 1Ti
+      storageClass: fast-ssd
+    staging:
+      size: 100Gi
+      storageClass: fast-ssd
+
+prometheus:
+  resources:
+    requests:
+      memory: 8Gi
+      cpu: 4000m
+    limits:
+      memory: 16Gi
+      cpu: 8000m
+  persistence:
+    size: 500Gi
+    storageClass: fast-ssd
+  config:
+    retention: 90d
+
+grafana:
+  resources:
+    requests:
+      memory: 2Gi
+      cpu: 1000m
+    limits:
+      memory: 4Gi
+      cpu: 2000m
+  config:
+    allowSignUp: false
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/rate-limit: "1000"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+  hosts:
+    - host: api.belizechain.org
+      paths:
+        - path: /nawal
+          pathType: Prefix
+          service: nawal
+          port: 8080
+        - path: /kinich
+          pathType: Prefix
+          service: kinich
+          port: 8888
+        - path: /pakit
+          pathType: Prefix
+          service: pakit
+          port: 8001
+  tls:
+    - secretName: belizechain-production-tls
+      hosts:
+        - api.belizechain.org
+
+secrets:
+  useExternalSecrets: true
+  externalSecretsProvider: vault  # Or aws/azure/gcp
+  vaultAddress: "https://vault.belizechain.org"
+
+autoscaling:
+  nawal:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 20
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+  kinich:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 20
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+  pakit:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 15
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+networkPolicies:
+  enabled: true
+
+podSecurityPolicy:
+  enabled: true
+
+serviceMesh:
+  enabled: true
+  mtls: true

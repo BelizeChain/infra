@@ -1,0 +1,51 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: belizechain-production
+  namespace: argocd
+  labels:
+    environment: production
+    app.kubernetes.io/name: belizechain
+  annotations:
+    notifications.argoproj.io/subscribe.on-sync-succeeded.slack: belizechain-prod
+spec:
+  project: belizechain
+  
+  source:
+    repoURL: https://github.com/BelizeChain/infra.git
+    targetRevision: main
+    path: ./helm/belizechain
+    helm:
+      valueFiles:
+        - values.yaml
+        - values-production.yaml
+      parameters:
+        - name: global.environment
+          value: production
+  
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: belizechain
+  
+  syncPolicy:
+    # Manual sync for production - no automated deployment
+    automated: null
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+    retry:
+      limit: 3
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 5m
+  
+  revisionHistoryLimit: 20
+  
+  ignoreDifferences:
+    - group: apps
+      kind: StatefulSet
+      jsonPointers:
+        - /spec/volumeClaimTemplates

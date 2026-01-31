@@ -1,0 +1,156 @@
+# Helm Values - GPU-Enabled Node Pool
+# Use for AI/ML workloads (Nawal federated learning)
+
+global:
+  environment: production
+  domain: belizechain.bz
+
+# Blockchain node (standard hardware)
+blockchain:
+  enabled: true
+  replicas: 1
+  nodeSelector:
+    workload: standard
+  resources:
+    requests:
+      memory: "4Gi"
+      cpu: "2000m"
+    limits:
+      memory: "16Gi"
+      cpu: "8000m"
+
+# Nawal AI (GPU-enabled node pool)
+nawal:
+  enabled: true
+  replicas: 2
+  
+  # GPU configuration
+  gpu:
+    enabled: true
+    count: 1
+    type: nvidia-tesla-t4
+  
+  # Node affinity for GPU nodes
+  nodeSelector:
+    gpu: "true"
+    accelerator: nvidia-tesla-t4
+  
+  # Toleration for GPU taint
+  tolerations:
+    - key: nvidia.com/gpu
+      operator: Equal
+      value: "true"
+      effect: NoSchedule
+  
+  resources:
+    requests:
+      memory: "8Gi"
+      cpu: "4000m"
+      nvidia.com/gpu: 1  # Request GPU
+    limits:
+      memory: "32Gi"
+      cpu: "16000m"
+      nvidia.com/gpu: 1
+  
+  # FL-specific configuration
+  env:
+    NAWAL_MIN_PARTICIPANTS: "3"
+    NAWAL_MAX_PARTICIPANTS: "100"
+    NAWAL_ROUNDS_PER_EPOCH: "10"
+    MODEL_TYPE: "belizechain-llm"
+    MODEL_HIDDEN_SIZE: "1024"
+    MODEL_NUM_LAYERS: "16"
+    MODEL_NUM_HEADS: "16"
+    DIFFERENTIAL_PRIVACY_ENABLED: "true"
+    DP_NOISE_MULTIPLIER: "1.1"
+  
+  # Persistent storage for models
+  persistence:
+    models:
+      enabled: true
+      size: 500Gi
+      storageClass: ssd-retain
+    checkpoints:
+      enabled: true
+      size: 200Gi
+      storageClass: ssd-retain
+
+# Kinich Quantum (standard node - cloud credentials)
+kinich:
+  enabled: true
+  replicas: 2
+  nodeSelector:
+    workload: standard
+  resources:
+    requests:
+      memory: "2Gi"
+      cpu: "1000m"
+    limits:
+      memory: "8Gi"
+      cpu: "4000m"
+
+# Pakit Storage (high-IOPS node)
+pakit:
+  enabled: true
+  replicas: 2
+  nodeSelector:
+    storage: "high-iops"
+  resources:
+    requests:
+      memory: "4Gi"
+      cpu: "2000m"
+    limits:
+      memory: "16Gi"
+      cpu: "8000m"
+  persistence:
+    storage:
+      enabled: true
+      size: 2Ti
+      storageClass: ssd-nvme
+
+# PostgreSQL (standard node)
+postgres:
+  enabled: true
+  replicas: 1
+  nodeSelector:
+    workload: database
+  resources:
+    requests:
+      memory: "4Gi"
+      cpu: "2000m"
+    limits:
+      memory: "16Gi"
+      cpu: "8000m"
+  persistence:
+    size: 500Gi
+    storageClass: ssd-retain
+
+# Redis (standard node)
+redis:
+  enabled: true
+  replicas: 1
+  nodeSelector:
+    workload: cache
+  resources:
+    requests:
+      memory: "2Gi"
+      cpu: "500m"
+    limits:
+      memory: "8Gi"
+      cpu: "2000m"
+
+# IPFS (standard node)
+ipfs:
+  enabled: true
+  replicas: 1
+  nodeSelector:
+    workload: standard
+  persistence:
+    size: 1Ti
+    storageClass: standard
+
+# Istio sidecar injection
+istio:
+  enabled: true
+  injection: enabled
+  mtls: STRICT

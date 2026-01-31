@@ -1,0 +1,85 @@
+---
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: belizechain-gateway
+  namespace: belizechain
+  labels:
+    app: belizechain
+    component: ingress
+spec:
+  selector:
+    istio: ingressgateway  # Use Istio default ingress gateway
+  servers:
+    # HTTP/HTTPS for UI applications
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - "*.belizechain.bz"
+        - "belizechain.bz"
+      # Redirect to HTTPS in production
+      tls:
+        httpsRedirect: true
+    
+    - port:
+        number: 443
+        name: https
+        protocol: HTTPS
+      hosts:
+        - "*.belizechain.bz"
+        - "belizechain.bz"
+      tls:
+        mode: SIMPLE
+        credentialName: belizechain-tls-cert  # Kubernetes Secret with TLS cert
+
+    # WebSocket for blockchain RPC
+    - port:
+        number: 9944
+        name: ws-rpc
+        protocol: TCP
+      hosts:
+        - "rpc.belizechain.bz"
+        - "*.belizechain.bz"
+
+    # HTTP RPC for blockchain
+    - port:
+        number: 9933
+        name: http-rpc
+        protocol: HTTP
+      hosts:
+        - "rpc.belizechain.bz"
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: pakit-public-gateway
+  namespace: belizechain
+  labels:
+    app: pakit
+    component: public-ingress
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+    # Public Pakit API (no authentication)
+    - port:
+        number: 443
+        name: https
+        protocol: HTTPS
+      hosts:
+        - "storage.belizechain.bz"
+      tls:
+        mode: SIMPLE
+        credentialName: belizechain-tls-cert
+    
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - "storage.belizechain.bz"
+      tls:
+        httpsRedirect: true

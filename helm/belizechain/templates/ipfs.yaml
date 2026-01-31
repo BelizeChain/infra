@@ -1,0 +1,109 @@
+{{- if .Values.ipfs.enabled }}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: ipfs
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "belizechain.labels" . | nindent 4 }}
+    app: ipfs
+spec:
+  serviceName: ipfs
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ipfs
+  template:
+    metadata:
+      labels:
+        app: ipfs
+        {{- include "belizechain.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: ipfs
+          image: "{{ .Values.ipfs.image.repository }}:{{ .Values.ipfs.image.tag }}"
+          ports:
+            - name: swarm
+              containerPort: {{ .Values.ipfs.service.swarmPort }}
+              protocol: TCP
+            - name: api
+              containerPort: {{ .Values.ipfs.service.apiPort }}
+              protocol: TCP
+            - name: gateway
+              containerPort: {{ .Values.ipfs.service.gatewayPort }}
+              protocol: TCP
+          env:
+            - name: IPFS_PROFILE
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: IPFS_PROFILE
+          livenessProbe:
+            httpGet:
+              path: /api/v0/id
+              port: api
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /api/v0/id
+              port: api
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          resources:
+            {{- toYaml .Values.ipfs.resources | nindent 12 }}
+          volumeMounts:
+            - name: ipfs-data
+              mountPath: /data/ipfs
+            - name: ipfs-staging
+              mountPath: /export
+  volumeClaimTemplates:
+    {{- if .Values.ipfs.persistence.data.enabled }}
+    - metadata:
+        name: ipfs-data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        storageClassName: {{ .Values.ipfs.persistence.data.storageClass }}
+        resources:
+          requests:
+            storage: {{ .Values.ipfs.persistence.data.size }}
+    {{- end }}
+    {{- if .Values.ipfs.persistence.staging.enabled }}
+    - metadata:
+        name: ipfs-staging
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        storageClassName: {{ .Values.ipfs.persistence.staging.storageClass }}
+        resources:
+          requests:
+            storage: {{ .Values.ipfs.persistence.staging.size }}
+    {{- end }}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ipfs
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "belizechain.labels" . | nindent 4 }}
+    app: ipfs
+spec:
+  type: {{ .Values.ipfs.service.type }}
+  ports:
+    - port: {{ .Values.ipfs.service.swarmPort }}
+      targetPort: swarm
+      protocol: TCP
+      name: swarm
+    - port: {{ .Values.ipfs.service.apiPort }}
+      targetPort: api
+      protocol: TCP
+      name: api
+    - port: {{ .Values.ipfs.service.gatewayPort }}
+      targetPort: gateway
+      protocol: TCP
+      name: gateway
+  selector:
+    app: ipfs
+{{- end }}

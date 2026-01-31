@@ -1,0 +1,56 @@
+{{- if and .Values.nawal.enabled .Values.nawal.persistence.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nawal-pvc
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "belizechain.labels" . | nindent 4 }}
+    app: nawal
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: {{ .Values.nawal.persistence.storageClass }}
+  resources:
+    requests:
+      storage: {{ .Values.nawal.persistence.size }}
+{{- end }}
+
+{{- if and .Values.kinich.enabled .Values.kinich.persistence.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kinich-pvc
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "belizechain.labels" . | nindent 4 }}
+    app: kinich
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: {{ .Values.kinich.persistence.storageClass }}
+  resources:
+    requests:
+      storage: {{ .Values.kinich.persistence.size }}
+{{- end }}
+
+{{- if and .Values.pakit.enabled .Values.pakit.persistence.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pakit-pvc
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "belizechain.labels" . | nindent 4 }}
+    app: pakit
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: {{ .Values.pakit.persistence.storageClass }}
+  resources:
+    requests:
+      storage: {{ .Values.pakit.persistence.size }}
+{{- end }}

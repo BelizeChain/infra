@@ -1,0 +1,61 @@
+Thank you for installing {{ .Chart.Name }}.
+
+Your release is named {{ .Release.Name }}.
+
+To learn more about the release, try:
+
+  $ helm status {{ .Release.Name }}
+  $ helm get all {{ .Release.Name }}
+
+BelizeChain Services:
+
+{{- if .Values.blockchainNode.enabled }}
+1. Blockchain Node
+   - RPC Port: {{ .Values.blockchainNode.service.rpcPort }}
+   - WebSocket Port: {{ .Values.blockchainNode.service.wsPort }}
+   - P2P Port: {{ .Values.blockchainNode.service.p2pPort }}
+   
+   To connect to the blockchain node:
+   $ kubectl port-forward -n {{ .Release.Namespace }} svc/belizechain-node {{ .Values.blockchainNode.service.wsPort }}:{{ .Values.blockchainNode.service.wsPort }}
+{{- end }}
+
+{{- if .Values.nawal.enabled }}
+2. Nawal Federated Learning
+   - API Port: {{ .Values.nawal.service.port }}
+   
+   To access Nawal API:
+   $ kubectl port-forward -n {{ .Release.Namespace }} svc/nawal {{ .Values.nawal.service.port }}:{{ .Values.nawal.service.port }}
+   $ curl http://localhost:{{ .Values.nawal.service.port }}/health
+{{- end }}
+
+{{- if .Values.kinich.enabled }}
+3. Kinich Quantum Computing
+   - API Port: {{ .Values.kinich.service.port }}
+   
+   To access Kinich API:
+   $ kubectl port-forward -n {{ .Release.Namespace }} svc/kinich {{ .Values.kinich.service.port }}:{{ .Values.kinich.service.port }}
+   $ curl http://localhost:{{ .Values.kinich.service.port }}/health
+{{- end }}
+
+{{- if .Values.pakit.enabled }}
+4. Pakit Decentralized Storage
+   - API Port: {{ .Values.pakit.service.port }}
+   
+   To access Pakit API:
+   $ kubectl port-forward -n {{ .Release.Namespace }} svc/pakit {{ .Values.pakit.service.port }}:{{ .Values.pakit.service.port }}
+   $ curl http://localhost:{{ .Values.pakit.service.port }}/health
+{{- end }}
+
+{{- if .Values.grafana.enabled }}
+5. Grafana Monitoring Dashboard
+   - Dashboard Port: {{ .Values.grafana.service.port }}
+   
+   To access Grafana:
+   $ kubectl port-forward -n {{ .Release.Namespace }} svc/grafana {{ .Values.grafana.service.port }}:{{ .Values.grafana.service.port }}
+   Open http://localhost:{{ .Values.grafana.service.port }}
+   Username: admin
+   Password: {{ .Values.secrets.grafanaAdminPassword }}
+{{- end }}
+
+For more information on using BelizeChain, please visit:
+https://github.com/BelizeChain/infra

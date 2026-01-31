@@ -1,0 +1,75 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: belizechain-config
+  namespace: belizechain
+  labels:
+    app.kubernetes.io/name: belizechain-config
+    app.kubernetes.io/part-of: belizechain-platform
+data:
+  # Blockchain Configuration
+  BLOCKCHAIN_RPC: "ws://belizechain-node:9944"
+  CHAIN: "dev"
+  LOG_LEVEL: "info"
+  
+  # Nawal Federated Learning
+  NAWAL_API_HOST: "0.0.0.0"
+  NAWAL_API_PORT: "8080"
+  NAWAL_MIN_PARTICIPANTS: "3"
+  NAWAL_MAX_PARTICIPANTS: "100"
+  
+  # Kinich Quantum Computing
+  KINICH_API_HOST: "0.0.0.0"
+  KINICH_API_PORT: "8888"
+  KINICH_MAX_CONCURRENT_JOBS: "10"
+  AZURE_QUANTUM_ENABLED: "true"
+  IBM_QUANTUM_ENABLED: "false"
+  AZURE_QUANTUM_LOCATION: "eastus"
+  
+  # Pakit Decentralized Storage
+  PAKIT_API_HOST: "0.0.0.0"
+  PAKIT_API_PORT: "8001"
+  PAKIT_STORAGE_DIR: "/app/storage"
+  IPFS_ENABLED: "true"
+  IPFS_API: "http://ipfs:5001"
+  ARWEAVE_ENABLED: "false"
+  
+  # Database Configuration
+  POSTGRES_DB: "belizechain"
+  POSTGRES_USER: "belizechain"
+  POSTGRES_HOST: "postgres"
+  POSTGRES_PORT: "5432"
+  
+  # Redis Configuration
+  REDIS_HOST: "redis"
+  REDIS_PORT: "6379"
+  
+  # IPFS Configuration
+  IPFS_PROFILE: "server"
+  IPFS_SWARM_PORT: "4001"
+  IPFS_API_PORT: "5001"
+  IPFS_GATEWAY_PORT: "8082"
+  
+  # Monitoring
+  PROMETHEUS_RETENTION: "30d"
+  GRAFANA_USERS_ALLOW_SIGN_UP: "false"
+  
+  # Network Ports
+  P2P_PORT: "30333"
+  RPC_PORT: "9933"
+  WS_PORT: "9944"
+  
+  # UI Configuration
+  NEXT_PUBLIC_MAYA_BLOCKCHAIN_RPC: "http://belizechain-node:9933"
+  NEXT_PUBLIC_MAYA_BLOCKCHAIN_WS: "ws://belizechain-node:9944"
+  NEXT_PUBLIC_IPFS_GATEWAY: "http://ipfs:8082"
+  NEXT_PUBLIC_NAWAL_API: "http://nawal:8080"
+  NEXT_PUBLIC_KINICH_API: "http://kinich:8888"
+  NEXT_PUBLIC_PAKIT_API: "http://pakit:8001"
+  
+  # Environment
+  ENVIRONMENT: "dev"
+  DEBUG: "false"
+  RELOAD: "false"
+  WORKERS: "4"

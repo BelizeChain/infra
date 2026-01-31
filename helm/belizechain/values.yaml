@@ -1,0 +1,316 @@
+# Default values for BelizeChain Helm chart
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Global settings
+global:
+  environment: dev
+  domain: belizechain.local
+  storageClass: standard
+
+# Blockchain Node Configuration
+blockchainNode:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: belizechain/node
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    p2pPort: 30333
+    rpcPort: 9933
+    wsPort: 9944
+  resources:
+    requests:
+      memory: 4Gi
+      cpu: 2000m
+    limits:
+      memory: 8Gi
+      cpu: 4000m
+  persistence:
+    enabled: true
+    size: 100Gi
+    storageClass: standard
+  config:
+    chain: dev
+    logLevel: info
+    validator: true
+    
+# Nawal Federated Learning Configuration
+nawal:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: belizechain/nawal
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8080
+  resources:
+    requests:
+      memory: 2Gi
+      cpu: 1000m
+    limits:
+      memory: 8Gi
+      cpu: 4000m
+  persistence:
+    enabled: true
+    size: 50Gi
+    storageClass: standard
+  config:
+    minParticipants: 3
+    maxParticipants: 100
+
+# Kinich Quantum Computing Configuration
+kinich:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: belizechain/kinich
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8888
+  resources:
+    requests:
+      memory: 2Gi
+      cpu: 1000m
+    limits:
+      memory: 8Gi
+      cpu: 4000m
+  persistence:
+    enabled: true
+    size: 20Gi
+    storageClass: standard
+  config:
+    maxConcurrentJobs: 10
+    azureQuantumEnabled: true
+    ibmQuantumEnabled: false
+    azureLocation: eastus
+
+# Pakit Storage Configuration
+pakit:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: belizechain/pakit
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8001
+  resources:
+    requests:
+      memory: 1Gi
+      cpu: 500m
+    limits:
+      memory: 4Gi
+      cpu: 2000m
+  persistence:
+    enabled: true
+    size: 100Gi
+    storageClass: standard
+  config:
+    ipfsEnabled: true
+    arweaveEnabled: false
+
+# PostgreSQL Database Configuration
+postgresql:
+  enabled: true
+  image:
+    repository: postgres
+    tag: 15-alpine
+  service:
+    type: ClusterIP
+    port: 5432
+  resources:
+    requests:
+      memory: 2Gi
+      cpu: 1000m
+    limits:
+      memory: 4Gi
+      cpu: 2000m
+  persistence:
+    enabled: true
+    size: 50Gi
+    storageClass: standard
+  config:
+    database: belizechain
+    username: belizechain
+
+# Redis Cache Configuration
+redis:
+  enabled: true
+  image:
+    repository: redis
+    tag: 7-alpine
+  service:
+    type: ClusterIP
+    port: 6379
+  resources:
+    requests:
+      memory: 512Mi
+      cpu: 250m
+    limits:
+      memory: 2Gi
+      cpu: 1000m
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClass: standard
+
+# IPFS Storage Configuration
+ipfs:
+  enabled: true
+  image:
+    repository: ipfs/go-ipfs
+    tag: latest
+  service:
+    type: ClusterIP
+    swarmPort: 4001
+    apiPort: 5001
+    gatewayPort: 8082
+  resources:
+    requests:
+      memory: 1Gi
+      cpu: 500m
+    limits:
+      memory: 4Gi
+      cpu: 2000m
+  persistence:
+    data:
+      enabled: true
+      size: 100Gi
+      storageClass: standard
+    staging:
+      enabled: true
+      size: 20Gi
+      storageClass: standard
+  config:
+    profile: server
+
+# Prometheus Monitoring Configuration
+prometheus:
+  enabled: true
+  image:
+    repository: prom/prometheus
+    tag: latest
+  service:
+    type: ClusterIP
+    port: 9090
+  resources:
+    requests:
+      memory: 2Gi
+      cpu: 1000m
+    limits:
+      memory: 4Gi
+      cpu: 2000m
+  persistence:
+    enabled: true
+    size: 50Gi
+    storageClass: standard
+  config:
+    retention: 30d
+
+# Grafana Dashboard Configuration
+grafana:
+  enabled: true
+  image:
+    repository: grafana/grafana
+    tag: latest
+  service:
+    type: ClusterIP
+    port: 3000
+  resources:
+    requests:
+      memory: 512Mi
+      cpu: 250m
+    limits:
+      memory: 2Gi
+      cpu: 1000m
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClass: standard
+  config:
+    allowSignUp: false
+
+# Ingress Configuration
+ingress:
+  enabled: false
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: api.belizechain.local
+      paths:
+        - path: /nawal
+          pathType: Prefix
+          service: nawal
+          port: 8080
+        - path: /kinich
+          pathType: Prefix
+          service: kinich
+          port: 8888
+        - path: /pakit
+          pathType: Prefix
+          service: pakit
+          port: 8001
+  tls:
+    - secretName: belizechain-tls
+      hosts:
+        - api.belizechain.local
+
+# Secret Management
+secrets:
+  # Use external-secrets operator in production
+  useExternalSecrets: false
+  externalSecretsProvider: vault  # Options: vault, aws, azure, gcp
+  vaultAddress: ""
+  
+  # Development secrets (DO NOT use in production)
+  postgresPassword: "CHANGE_ME_POSTGRES_PASSWORD"
+  redisPassword: "CHANGE_ME_REDIS_PASSWORD"
+  grafanaAdminPassword: "CHANGE_ME_GRAFANA_PASSWORD"
+  jwtSecret: "CHANGE_ME_JWT_SECRET"
+  encryptionSalt: "CHANGE_ME_ENCRYPTION_SALT"
+  nawalApiKey: "CHANGE_ME_NAWAL_API_KEY"
+  kinichApiKey: "CHANGE_ME_KINICH_API_KEY"
+  pakitApiKey: "CHANGE_ME_PAKIT_API_KEY"
+
+# Auto-scaling Configuration
+autoscaling:
+  nawal:
+    enabled: false
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 80
+    targetMemoryUtilizationPercentage: 80
+  kinich:
+    enabled: false
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 80
+    targetMemoryUtilizationPercentage: 80
+  pakit:
+    enabled: false
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 80
+    targetMemoryUtilizationPercentage: 80
+
+# Network Policies
+networkPolicies:
+  enabled: false
+
+# Pod Security Policies
+podSecurityPolicy:
+  enabled: false
+
+# Service Mesh (Istio)
+serviceMesh:
+  enabled: false
+  mtls: false
