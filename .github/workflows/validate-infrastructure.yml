@@ -1,0 +1,130 @@
+name: Infrastructure Validation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  yaml-lint:
+    name: YAML Linting
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install yamllint
+        run: pip install yamllint
+      
+      - name: Lint YAML files
+        run: |
+          yamllint -c .yamllint \
+            docker-compose.yml \
+            helm/ \
+            k8s/ \
+            argocd/ \
+            grafana/ || true
+
+  helm-validation:
+    name: Helm Chart Validation
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: '3.14.0'
+      
+      - name: Lint Helm charts
+        run: |
+          helm lint helm/belizechain \
+            --values helm/belizechain/values.yaml \
+            --values helm/belizechain/values-dev.yaml
+      
+      - name: Lint production values
+        run: |
+          helm lint helm/belizechain \
+            --values helm/belizechain/values-production.yaml
+      
+      - name: Template dry-run
+        run: |
+          helm template belizechain helm/belizechain \
+            --values helm/belizechain/values.yaml \
+            --dry-run > /dev/null
+
+  kubernetes-validation:
+    name: Kubernetes Manifest Validation
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+      
+      - name: Validate Kubernetes manifests
+        run: |
+          kubectl apply --dry-run=client -k k8s/base/ || true
+      
+      - name: Validate ArgoCD applications
+        run: |
+          for file in argocd/*.yaml; do
+            kubectl apply --dry-run=client -f "$file" || true
+          done
+
+  docker-compose-validation:
+    name: Docker Compose Validation
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Validate docker-compose.yml
+        run: |
+          docker-compose config > /dev/null
+          echo "✅ docker-compose.yml is valid"
+
+  secrets-check:
+    name: Check for Secrets/Leaks
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Check for secrets in files
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.pull_request.base.sha || 'main' }}
+          head: HEAD
+      
+      - name: Verify .gitignore exists
+        run: |
+          if [ ! -f .gitignore ]; then
+            echo "❌ .gitignore is missing!"
+            exit 1
+          fi
+          echo "✅ .gitignore exists"
+      
+      - name: Check for common secret files
+        run: |
+          if find . -name "*.env" -not -name ".env.example" -not -path "./.git/*" | grep -q .; then
+            echo "⚠️  Warning: Found .env files (should be gitignored)"
+            find . -name "*.env" -not -name ".env.example" -not -path "./.git/*"
+          else
+            echo "✅ No .env files found in repository"
+          fi

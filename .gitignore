@@ -58,9 +58,11 @@ helm/**/secrets.yml
 # DEPLOYMENT: Generated & Runtime Files
 # ============================================================================
 # Chain Specs (production contains real validator keys)
+# These files will show RED in git status - that's intentional!
 chain-spec-production.json
 chain-spec-staging.json
 chain-spec-*.raw.json
+!chain-spec-dev.json
 node-key
 node-key-*
 
