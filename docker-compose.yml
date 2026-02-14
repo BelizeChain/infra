@@ -19,6 +19,34 @@ services:
       - BELIZECHAIN_CHAIN=${CHAIN:-dev}
       - BELIZECHAIN_BASE_PATH=${BASE_PATH:-/data}
       - NODE_NAME=${NODE_NAME:-BelizeChain-Node-1}
+      
+      # Runtime Pallets Configuration
+      - ENABLE_PALLET_ECONOMY=true
+      - ENABLE_PALLET_BELIZEX=true
+      - ENABLE_PALLET_PAYROLL=true
+      - ENABLE_PALLET_GOVERNANCE=true
+      - ENABLE_PALLET_COMMUNITY=true
+      - ENABLE_PALLET_IDENTITY=true
+      - ENABLE_PALLET_COMPLIANCE=true
+      - ENABLE_PALLET_ORACLE=true
+      - ENABLE_PALLET_STAKING=true
+      - ENABLE_PALLET_CONSENSUS=true
+      - ENABLE_PALLET_INTEROPERABILITY=true
+      - ENABLE_PALLET_QUANTUM=true
+      - ENABLE_PALLET_MESH=true
+      - ENABLE_PALLET_LANDLEDGER=true
+      - ENABLE_PALLET_BNS=true
+      - ENABLE_PALLET_CONTRACTS=true
+      
+      # Meshtastic LoRa Mesh Network
+      - MESH_NETWORK_ENABLED=${MESH_NETWORK_ENABLED:-false}
+      - MESH_NODE_ID=${MESH_NODE_ID}
+      - MESH_CHANNEL=${MESH_CHANNEL:-BelizeChain}
+      
+      # Performance & Consensus
+      - TARGET_TPS=${TARGET_TPS:-2000}
+      - BLOCK_TIME=${BLOCK_TIME:-6}
+      - MAX_BLOCK_SIZE=${MAX_BLOCK_SIZE:-5242880}
     command: >
       --base-path ${BASE_PATH:-/data}
       --chain /app/chain-spec.json
@@ -67,6 +95,28 @@ services:
       - NAWAL_API_PORT=8080
       - NAWAL_MIN_PARTICIPANTS=${NAWAL_MIN_PARTICIPANTS:-3}
       - NAWAL_MAX_PARTICIPANTS=${NAWAL_MAX_PARTICIPANTS:-100}
+      - NAWAL_ROUNDS_PER_EPOCH=${NAWAL_ROUNDS_PER_EPOCH:-10}
+      - NAWAL_MIN_FIT_CLIENTS=${NAWAL_MIN_FIT_CLIENTS:-2}
+      
+      # Differential Privacy (DP-SGD)
+      - DIFFERENTIAL_PRIVACY_ENABLED=${DIFFERENTIAL_PRIVACY_ENABLED:-true}
+      - DP_NOISE_MULTIPLIER=${DP_NOISE_MULTIPLIER:-1.1}
+      - DP_MAX_GRAD_NORM=${DP_MAX_GRAD_NORM:-1.0}
+      - DP_DELTA=${DP_DELTA:-1e-5}
+      
+      # Genetic Algorithm Model Evolution
+      - GENETIC_ALGORITHM_ENABLED=${GENETIC_ALGORITHM_ENABLED:-true}
+      - GA_POPULATION_SIZE=${GA_POPULATION_SIZE:-10}
+      - GA_GENERATIONS=${GA_GENERATIONS:-5}
+      - GA_MUTATION_RATE=${GA_MUTATION_RATE:-0.1}
+      
+      # Byzantine Detection & Security
+      - BYZANTINE_DETECTION_ENABLED=${BYZANTINE_DETECTION_ENABLED:-true}
+      - GRADIENT_VERIFICATION_ENABLED=${GRADIENT_VERIFICATION_ENABLED:-true}
+      - DATA_POISONING_DETECTION=${DATA_POISONING_DETECTION:-true}
+      - DATA_LEAKAGE_DETECTION=${DATA_LEAKAGE_DETECTION:-true}
+      
+      # Integration
       - IPFS_API=${IPFS_API:-http://ipfs:5001}
       - BLOCKCHAIN_RPC=${BLOCKCHAIN_RPC:-ws://belizechain-node:9944}
       - POSTGRES_HOST=${POSTGRES_HOST:-postgres}
@@ -131,13 +181,34 @@ services:
       - KINICH_API_HOST=${KINICH_API_HOST:-0.0.0.0}
       - KINICH_API_PORT=8888
       - KINICH_MAX_CONCURRENT_JOBS=${KINICH_MAX_CONCURRENT_JOBS:-10}
+      - KINICH_DEFAULT_BACKEND=${KINICH_DEFAULT_BACKEND:-qasm_simulator}
+      - KINICH_ENABLE_ERROR_MITIGATION=${KINICH_ENABLE_ERROR_MITIGATION:-true}
+      
+      # Azure Quantum (Primary Backend)
       - AZURE_QUANTUM_ENABLED=${AZURE_QUANTUM_ENABLED:-true}
       - AZURE_QUANTUM_SUBSCRIPTION_ID=${AZURE_QUANTUM_SUBSCRIPTION_ID}
       - AZURE_QUANTUM_RESOURCE_GROUP=${AZURE_QUANTUM_RESOURCE_GROUP}
       - AZURE_QUANTUM_WORKSPACE=${AZURE_QUANTUM_WORKSPACE}
       - AZURE_QUANTUM_LOCATION=${AZURE_QUANTUM_LOCATION:-eastus}
+      
+      # IBM Quantum (Fallback Backend)
       - IBM_QUANTUM_ENABLED=${IBM_QUANTUM_ENABLED:-false}
       - IBM_QUANTUM_TOKEN=${IBM_QUANTUM_TOKEN}
+      - IBM_QUANTUM_HUB=${IBM_QUANTUM_HUB:-ibm-q}
+      - IBM_QUANTUM_GROUP=${IBM_QUANTUM_GROUP:-open}
+      - IBM_QUANTUM_PROJECT=${IBM_QUANTUM_PROJECT:-main}
+      
+      # Circuit Optimization
+      - CIRCUIT_OPTIMIZATION_LEVEL=${CIRCUIT_OPTIMIZATION_LEVEL:-3}
+      - MAX_QUBITS=${MAX_QUBITS:-127}
+      - MAX_SHOTS=${MAX_SHOTS:-100000}
+      
+      # Error Mitigation - Zero Noise Extrapolation (ZNE)
+      - ZNE_ENABLED=${ZNE_ENABLED:-true}
+      - ZNE_NOISE_FACTORS=${ZNE_NOISE_FACTORS:-[1,2,3]}
+      
+      # Error Mitigation - Readout Mitigation
+      - READOUT_MITIGATION_ENABLED=${READOUT_MITIGATION_ENABLED:-true}
       - BLOCKCHAIN_RPC=${BLOCKCHAIN_RPC:-ws://belizechain-node:9944}
       - POSTGRES_HOST=${POSTGRES_HOST:-postgres}
       - POSTGRES_PORT=${POSTGRES_PORT:-5432}
@@ -148,6 +219,89 @@ services:
       - belizechain-node
       - postgres
     restart: unless-stopped
+    networks:
+      - belizechain
+
+  # Pakit Decentralized Storage Service
+  pakit:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.pakit
+    container_name: belizechain-pakit
+    ports:
+      - "${PAKIT_API_PORT:-8001}:8001"
+    volumes:
+      - pakit-dag-storage:/app/storage
+      - pakit-cache:/app/cache
+    environment:
+      # API Configuration
+      - PAKIT_API_HOST=${PAKIT_API_HOST:-0.0.0.0}
+      - PAKIT_API_PORT=8001
+      - PAKIT_ENV=${PAKIT_ENV:-production}
+      
+      # Storage Configuration
+      - STORAGE_DIR=/app/storage
+      - MAX_FILE_SIZE=${MAX_FILE_SIZE:-104857600}  # 100MB
+      - ENABLE_COMPRESSION=${ENABLE_COMPRESSION:-true}
+      - COMPRESSION_ALGORITHMS=${COMPRESSION_ALGORITHMS:-zstd,lz4,snappy}
+      - ENABLE_DEDUPLICATION=${ENABLE_DEDUPLICATION:-true}
+      - CHUNK_SIZE=${CHUNK_SIZE:-4194304}  # 4MB
+      
+      # Public Access Mode
+      - PAKIT_PUBLIC_MODE=${PAKIT_PUBLIC_MODE:-view-only}
+      - PUBLIC_UPLOAD_ENABLED=${PUBLIC_UPLOAD_ENABLED:-false}
+      - PUBLIC_DOWNLOAD_ENABLED=${PUBLIC_DOWNLOAD_ENABLED:-false}
+      
+      # Blockchain Integration
+      - BLOCKCHAIN_ENABLED=${BLOCKCHAIN_ENABLED:-false}
+      - BLOCKCHAIN_RPC=${BLOCKCHAIN_RPC:-ws://belizechain-node:9944}
+      - REQUIRE_BELIZEID_FOR_PROOFS=${REQUIRE_BELIZEID_FOR_PROOFS:-true}
+      
+      # Sovereign DAG Backend (PRIMARY)
+      - DAG_BACKEND_ENABLED=${DAG_BACKEND_ENABLED:-true}
+      - DAG_REPLICATION_FACTOR=${DAG_REPLICATION_FACTOR:-3}
+      - DAG_QUANTUM_COMPRESSION=${DAG_QUANTUM_COMPRESSION:-true}
+      
+      # ZK Proof Support
+      - ZK_PROOF_ENABLED=${ZK_PROOF_ENABLED:-true}
+      - ZK_PROOF_SYSTEM=${ZK_PROOF_SYSTEM:-groth16}
+      - ZK_VERIFY_ON_UPLOAD=${ZK_VERIFY_ON_UPLOAD:-false}
+      - ZK_PROOF_CACHE_DIR=/app/cache/zk-proofs
+      
+      # IPFS Backend (OPTIONAL)
+      - IPFS_ENABLED=${IPFS_ENABLED:-false}
+      - IPFS_API=${IPFS_API:-http://ipfs:5001}
+      
+      # Arweave Backend (OPTIONAL)
+      - ARWEAVE_ENABLED=${ARWEAVE_ENABLED:-false}
+      
+      # Cache Settings
+      - CACHE_DIR=/app/cache
+      - CACHE_MAX_SIZE=${CACHE_MAX_SIZE:-10737418240}  # 10GB
+      - CACHE_TTL=${CACHE_TTL:-3600}  # 1 hour
+      
+      # Database Connection
+      - POSTGRES_HOST=${POSTGRES_HOST:-postgres}
+      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+      - POSTGRES_DB=${POSTGRES_DB:-belizechain}
+      - POSTGRES_USER=${POSTGRES_USER:-belizechain}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      
+      # Redis Connection
+      - REDIS_HOST=${REDIS_HOST:-redis}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    depends_on:
+      - ipfs
+      - postgres
+      - redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
     networks:
       - belizechain
 
@@ -280,6 +434,10 @@ volumes:
   redis-data:
     driver: local
   quantum-results:
+    driver: local
+  pakit-dag-storage:
+    driver: local
+  pakit-cache:
     driver: local
   prometheus-data:
     driver: local

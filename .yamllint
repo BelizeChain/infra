@@ -1,0 +1,59 @@
+# YAML Linter Configuration for BelizeChain Infrastructure
+# This configuration excludes Helm template files since they contain
+# Go template syntax that isn't valid YAML until rendered by Helm
+
+---
+extends: default
+
+# Ignore Helm template directories entirely
+# These files contain {{- }} template syntax that will be rendered by Helm
+ignore: |
+  helm/**/templates/**
+  .git/
+  .github/
+  node_modules/
+  venv/
+  .venv/
+
+rules:
+  # Line length - allow longer lines for URLs and complex configurations
+  line-length:
+    max: 200
+    level: warning
+  
+  # Indentation - 2 spaces (standard for YAML)
+  indentation:
+    spaces: 2
+    indent-sequences: true
+  
+  # Comments - allow comments to be indented differently
+  comments:
+    min-spaces-from-content: 1
+  
+  # Document start - not required (---) for all files
+  document-start: disable
+  
+  # Trailing spaces
+  trailing-spaces: enable
+  
+  # Empty lines
+  empty-lines:
+    max: 2
+  
+  # Key duplicates - error on duplicates
+  key-duplicates: enable
+  
+  # Truthy values - allow yes/no, on/off, true/false
+  truthy:
+    allowed-values: ['true', 'false', 'yes', 'no', 'on', 'off']
+    check-keys: false
+  
+  # Brackets - allow both styles
+  brackets:
+    min-spaces-inside: 0
+    max-spaces-inside: 1
+  
+  # Quoted strings - allow both quoted and unquoted
+  quoted-strings:
+    quote-type: any
+    required: false

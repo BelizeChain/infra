@@ -1,0 +1,51 @@
+{
+  // VS Code Settings for BelizeChain Infrastructure
+  // Configures YAML validation to understand Helm templates
+  
+  "yaml.schemas": {
+    "https://json.schemastore.org/kustomization.json": "k8s/**/kustomization.yaml",
+    "https://json.schemastore.org/github-workflow.json": ".github/workflows/*.yml",
+    "https://raw.githubusercontent.com/docker/compose/master/compose/config/compose_spec.json": "docker-compose*.yml",
+    "kubernetes": "k8s/**/*.yaml"
+  },
+  
+  // File associations - treat Helm templates differently
+  "files.associations": {
+    "**/helm/**/templates/*.yaml": "helm",
+    "**/helm/**/templates/*.tpl": "helm",
+    "**/helm/**/templates/_*.yaml": "helm"
+  },
+  
+  // Exclude from file watcher
+  "files.watcherExclude": {
+    "**/.git/**": true,
+    "**/node_modules/**": true,
+    "**/.venv/**": true,
+    "**/venv/**": true
+  },
+  
+  // YAML formatting
+  "[yaml]": {
+    "editor.defaultFormatter": "redhat.vscode-yaml",
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+    "editor.autoIndent": "advanced"
+  },
+  
+  // Helm specific settings (if Helm extension is installed)
+  "[helm]": {
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+    "editor.formatOnSave": false
+  },
+  
+  // Markdown formatting
+  "[markdown]": {
+    "editor.wordWrap": "on",
+    "editor.quickSuggestions": {
+      "comments": "off",
+      "strings": "off",
+      "other": "off"
+    }
+  }
+}

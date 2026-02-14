@@ -1,5 +1,5 @@
-{{- if and .Values.nawal.enabled .Values.nawal.persistence.enabled }}
 ---
+{{- if and .Values.nawal.enabled .Values.nawal.persistence.enabled }}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -36,21 +36,42 @@ spec:
       storage: {{ .Values.kinich.persistence.size }}
 {{- end }}
 
-{{- if and .Values.pakit.enabled .Values.pakit.persistence.enabled }}
+{{- if and .Values.pakit.enabled .Values.pakit.persistence.storage.enabled }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: pakit-pvc
+  name: pakit-storage-pvc
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "belizechain.labels" . | nindent 4 }}
     app: pakit
+    type: storage
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: {{ .Values.pakit.persistence.storageClass }}
+  storageClassName: {{ .Values.pakit.persistence.storage.storageClass }}
   resources:
     requests:
-      storage: {{ .Values.pakit.persistence.size }}
+      storage: {{ .Values.pakit.persistence.storage.size }}
+{{- end }}
+
+{{- if and .Values.pakit.enabled .Values.pakit.persistence.cache.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pakit-cache-pvc
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "belizechain.labels" . | nindent 4 }}
+    app: pakit
+    type: cache
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: {{ .Values.pakit.persistence.cache.storageClass }}
+  resources:
+    requests:
+      storage: {{ .Values.pakit.persistence.cache.size }}
 {{- end }}

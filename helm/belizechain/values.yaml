@@ -37,6 +37,33 @@ blockchainNode:
     logLevel: info
     validator: true
     
+    # Runtime Pallets (16 total)
+    enablePalletEconomy: true
+    enablePalletBelizex: true
+    enablePalletPayroll: true
+    enablePalletGovernance: true
+    enablePalletCommunity: true
+    enablePalletIdentity: true
+    enablePalletCompliance: true
+    enablePalletOracle: true
+    enablePalletStaking: true
+    enablePalletConsensus: true
+    enablePalletInteroperability: true
+    enablePalletQuantum: true
+    enablePalletMesh: true
+    enablePalletLandledger: true
+    enablePalletBns: true
+    enablePalletContracts: true
+    
+    # Meshtastic LoRa Mesh Network
+    meshNetworkEnabled: false
+    meshChannel: "BelizeChain"
+    
+    # Performance
+    targetTps: 2000
+    blockTime: 6
+    maxBlockSize: 5242880
+    
 # Nawal Federated Learning Configuration
 nawal:
   enabled: true
@@ -62,6 +89,32 @@ nawal:
   config:
     minParticipants: 3
     maxParticipants: 100
+    roundsPerEpoch: 10
+    minFitClients: 2
+    
+    # Differential Privacy
+    differentialPrivacyEnabled: true
+    dpNoise Multiplier: 1.1
+    dpMaxGradNorm: 1.0
+    dpDelta: 1e-5
+    
+    # Genetic Algorithm
+    geneticAlgorithmEnabled: true
+    gaPopulationSize: 10
+    gaGenerations: 5
+    gaMutationRate: 0.1
+    
+    # Security Features
+    byzantineDetectionEnabled: true
+    cosineSimilarityThreshold: 0.8
+    gradientVerificationEnabled: true
+    gradientNormThreshold: 10.0
+    dataPoisoningDetection: true
+    klDivergenceThreshold: 0.5
+    lossSpikeThreshold: 2.0
+    dataLeakageDetection: true
+    membershipInferenceEnabled: true
+    gradientInversionDetection: true
 
 # Kinich Quantum Computing Configuration
 kinich:
@@ -87,9 +140,26 @@ kinich:
     storageClass: standard
   config:
     maxConcurrentJobs: 10
+    defaultBackend: qasm_simulator
+    enableErrorMitigation: true
     azureQuantumEnabled: true
     ibmQuantumEnabled: false
     azureLocation: eastus
+    
+    # Circuit Optimization
+    circuitOptimizationLevel: 3
+    maxQubits: 127
+    maxShots: 100000
+    
+    # Error Mitigation
+    zneEnabled: true
+    zneNoiseFactors: "[1,2,3]"
+    readoutMitigationEnabled: true
+    
+    # Hybrid Mode
+    hybridModeEnabled: true
+    classicalOptimizer: COBYLA
+    transpileOptimizationLevel: 3
 
 # Pakit Storage Configuration
 pakit:
@@ -110,12 +180,43 @@ pakit:
       memory: 4Gi
       cpu: 2000m
   persistence:
-    enabled: true
-    size: 100Gi
-    storageClass: standard
+    storage:
+      enabled: true
+      size: 100Gi
+      storageClass: standard
+    cache:
+      enabled: true
+      size: 20Gi
+      storageClass: standard
   config:
+    # Backend Configuration
     ipfsEnabled: true
     arweaveEnabled: false
+    dagBackendEnabled: true
+    dagReplicationFactor: 3
+    dagQuantumCompression: true
+    
+    # ZK Proof Configuration
+    zkProofEnabled: true
+    zkProofSystem: groth16
+    zkVerifyOnUpload: false
+    
+    # Public Access Mode
+    publicMode: view-only
+    publicUploadEnabled: false
+    publicDownloadEnabled: false
+    requireBelizeIdForProofs: true
+    
+    # Storage Settings
+    maxFileSize: 104857600  # 100MB
+    enableCompression: true
+    compressionAlgorithms: "zstd,lz4,snappy"
+    enableDeduplication: true
+    chunkSize: 4194304  # 4MB
+    
+    # Cache Settings
+    cacheMaxSize: 10737418240  # 10GB
+    cacheTtl: 3600  # 1 hour
 
 # PostgreSQL Database Configuration
 postgresql:

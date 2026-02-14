@@ -41,6 +41,12 @@ services:
       - DAG_REPLICATION_FACTOR=3
       - DAG_QUANTUM_COMPRESSION=true
       
+      # ZK Proof Support (NEW)
+      - ZK_PROOF_ENABLED=true
+      - ZK_PROOF_SYSTEM=groth16
+      - ZK_VERIFY_ON_UPLOAD=false
+      - ZK_PROOF_CACHE_DIR=/app/cache/zk-proofs
+      
       # IPFS Backend (OPTIONAL - fallback only)
       - IPFS_ENABLED=${IPFS_ENABLED:-false}
       - IPFS_API=http://ipfs.belizechain.svc.cluster.local:5001

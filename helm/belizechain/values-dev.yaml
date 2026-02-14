@@ -24,6 +24,18 @@ kinich:
 
 pakit:
   replicaCount: 1  # Single replica for dev
+  config:
+    # Dev DAG configuration
+    dagBackendEnabled: true
+    dagReplicationFactor: 2  # Lower replication for dev
+    
+    # ZK Proof configuration (testing)
+    zkProofEnabled: true
+    zkVerifyOnUpload: false  # Faster uploads in dev
+    
+    # Dev storage settings
+    maxFileSize: 52428800  # 50MB for dev
+    cacheMaxSize: 5368709120  # 5GB cache
 
 prometheus:
   config:

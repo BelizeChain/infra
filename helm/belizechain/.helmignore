@@ -1,0 +1,29 @@
+# Helm Ignore Configuration
+# Files and directories to exclude from Helm packaging
+
+# Development and test files
+*.md
+*.txt
+.git/
+.github/
+.vscode/
+.idea/
+
+# CI/CD files
+.gitlab-ci.yml
+.travis.yml
+Jenkinsfile
+
+# Documentation (keep only README)
+docs/
+OWNERS
+
+# Test files
+test/
+tests/
+ci/
+
+# Linter configs
+.yamllint
+.editorconfig
+.helmignore

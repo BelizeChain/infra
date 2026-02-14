@@ -80,6 +80,101 @@ spec:
                 configMapKeyRef:
                   name: belizechain-config
                   key: ARWEAVE_ENABLED
+            - name: DAG_BACKEND_ENABLED
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: DAG_BACKEND_ENABLED
+            - name: DAG_REPLICATION_FACTOR
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: DAG_REPLICATION_FACTOR
+            - name: DAG_QUANTUM_COMPRESSION
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: DAG_QUANTUM_COMPRESSION
+            - name: ZK_PROOF_ENABLED
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: ZK_PROOF_ENABLED
+            - name: ZK_PROOF_SYSTEM
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: ZK_PROOF_SYSTEM
+            - name: ZK_VERIFY_ON_UPLOAD
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: ZK_VERIFY_ON_UPLOAD
+            - name: ZK_PROOF_CACHE_DIR
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: ZK_PROOF_CACHE_DIR
+            - name: PAKIT_PUBLIC_MODE
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: PAKIT_PUBLIC_MODE
+            - name: PUBLIC_UPLOAD_ENABLED
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: PUBLIC_UPLOAD_ENABLED
+            - name: PUBLIC_DOWNLOAD_ENABLED
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: PUBLIC_DOWNLOAD_ENABLED
+            - name: REQUIRE_BELIZEID_FOR_PROOFS
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: REQUIRE_BELIZEID_FOR_PROOFS
+            - name: CACHE_DIR
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: CACHE_DIR
+            - name: CACHE_MAX_SIZE
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: CACHE_MAX_SIZE
+            - name: CACHE_TTL
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: CACHE_TTL
+            - name: MAX_FILE_SIZE
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: MAX_FILE_SIZE
+            - name: ENABLE_COMPRESSION
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: ENABLE_COMPRESSION
+            - name: COMPRESSION_ALGORITHMS
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: COMPRESSION_ALGORITHMS
+            - name: ENABLE_DEDUPLICATION
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: ENABLE_DEDUPLICATION
+            - name: CHUNK_SIZE
+              valueFrom:
+                configMapKeyRef:
+                  name: belizechain-config
+                  key: CHUNK_SIZE
             - name: PAKIT_API_KEY
               valueFrom:
                 secretKeyRef:
@@ -93,6 +188,8 @@ spec:
           volumeMounts:
             - name: pakit-storage
               mountPath: /app/storage
+            - name: pakit-cache
+              mountPath: /app/cache
           resources:
             requests:
               memory: "1Gi"
@@ -120,6 +217,9 @@ spec:
         - name: pakit-storage
           persistentVolumeClaim:
             claimName: pakit-storage
+        - name: pakit-cache
+          persistentVolumeClaim:
+            claimName: pakit-cache
 
 ---
 apiVersion: v1
@@ -135,4 +235,20 @@ spec:
   resources:
     requests:
       storage: 100Gi
+  storageClassName: standard
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pakit-cache
+  namespace: belizechain
+  labels:
+    app: pakit
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 20Gi
   storageClassName: standard

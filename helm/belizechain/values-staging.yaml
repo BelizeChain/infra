@@ -43,6 +43,28 @@ pakit:
     limits:
       memory: 6Gi
       cpu: 3000m
+  persistence:
+    storage:
+      size: 500Gi  # Medium storage for staging
+      storageClass: standard
+    cache:
+      size: 50Gi
+      storageClass: standard
+  config:
+    # Staging DAG configuration
+    dagBackendEnabled: true
+    dagReplicationFactor: 3
+    dagQuantumCompression: true
+    
+    # ZK Proof configuration
+    zkProofEnabled: true
+    zkProofSystem: groth16
+    zkVerifyOnUpload: true  # Test verification in staging
+    
+    # Staging storage settings
+    maxFileSize: 209715200  # 200MB for staging
+    cacheMaxSize: 53687091200  # 50GB cache
+    cacheTtl: 3600
 
 prometheus:
   config:

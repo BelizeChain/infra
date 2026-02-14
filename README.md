@@ -32,17 +32,49 @@ BelizeChain infrastructure supports **flexible deployment topologies**:
     TensorFlow         Qiskit           Redis/IPFS
 ```
 
+### 🎯 **Platform Capabilities**
+
+| Component | Features | Technology Stack |
+|-----------|----------|------------------|
+| **BelizeChain Blockchain** | 16 custom pallets: Economy (DALLA/bBZD), BelizeX DEX, Identity, Governance, Staking (PoUW), Quantum, Meshtastic Mesh, Land Registry, BNS, Smart Contracts | Substrate 4.0, Rust, 2000 TPS, 6s blocks |
+| **Nawal AI** | Federated Learning, Differential Privacy (DP-SGD), Genetic Algorithms, Byzantine Detection, Gradient Verification, Data Poisoning Detection | Flower, PyTorch, TensorFlow, Python 3.11 |
+| **Kinich Quantum** | Zero Noise Extrapolation, Readout Mitigation, Hybrid Quantum-Classical, Circuit Optimization L3, Azure/IBM Backends | Qiskit, Azure Quantum, IBM Quantum, Python 3.11 |
+| **Pakit Storage** | Sovereign DAG, ZK Proofs (Groth16), Quantum Compression, Deduplication, Multi-tier Cache | Python 3.13, DAG, IPFS (optional), Arweave (optional) |
+| **GEM Contracts** | BelizeX DEX (Factory/Pair/Router), PSP37 Multi-Token, Access Control, Security Audit Checklist | ink! 5.0, WebAssembly, Rust |
+| **Infrastructure** | Istio Service Mesh, ArgoCD GitOps, Prometheus/Grafana, Multi-environment (dev/staging/prod) | Kubernetes, Helm, Docker Compose |
+
+---
+
+## 📚 Documentation
+
+**Comprehensive documentation available in the [`docs/`](./docs/) directory:**
+
+- **[Production Deployment Guide](./docs/guides/production/deployment-guide.md)** - Complete production deployment procedures
+- **[Security Best Practices](./docs/guides/production/security-best-practices.md)** - Security hardening and compliance
+- **[Secrets Management](./docs/guides/production/secrets-management.md)** - Comprehensive secrets management guide
+- **[Security Audit Resolution](./SECURITY_AUDIT_RESOLUTION.md)** - YAML linting exceptions explained
+- **[Component Documentation](./docs/components/)** - Individual component guides (Blockchain, Nawal, Kinich, Pakit)
+- **[Update History](./docs/updates/)** - Platform update documentation
+- **[Full Documentation Index](./docs/README.md)** - Complete documentation navigation
+
+---
+
 ## ✅ Infrastructure Status
 
 ### Complete Features
-✅ **Docker Compose** - Unified deployment (11 services)  
+✅ **Docker Compose** - Unified deployment (12 services)  
 ✅ **Component Isolation** - Standalone deployment packages (blockchain/, nawal/, kinich/, pakit/)  
 ✅ **Kubernetes Manifests** - Base configurations in k8s/base/  
 ✅ **Istio Service Mesh** - Complete mTLS + traffic management in k8s/istio/  
 ✅ **Helm Charts** - Hardware-specific values (GPU, quantum, unified)  
 ✅ **Service Discovery** - FQDN templates in shared/  
 ✅ **Strict Dependency Validation** - Init containers verify all services  
-✅ **Pakit Public Access** - Two-tier authentication (public/BelizeID)  
+✅ **16 Custom Pallets** - Complete sovereign blockchain runtime  
+✅ **Pakit DAG Storage** - Sovereign DAG backend with ZK proofs  
+✅ **Nawal AI Security** - Byzantine detection, differential privacy, genetic algorithms  
+✅ **Kinich Quantum** - Error mitigation (ZNE + Readout), hybrid quantum-classical  
+✅ **GEM Smart Contracts** - ink! 5.0 with BelizeX DEX, PSP37 multi-token  
+✅ **Meshtastic LoRa Mesh** - Decentralized mesh networking support  
 ✅ **ArgoCD GitOps** - Automated deployment configs  
 ✅ **Monitoring** - Prometheus + Grafana dashboards
 
@@ -85,6 +117,7 @@ docker compose -f infra/docker-compose.yml logs -f
 | **Blockchain WebSocket** | ws://localhost:9944 | Real-time subscriptions |
 | **IPFS Gateway** | http://localhost:8080 | Decentralized storage |
 | **IPFS API** | http://localhost:5001 | Upload files |
+| **Pakit Storage** | http://localhost:8001 | Sovereign DAG storage |
 | **FL Aggregator** | http://localhost:8080 | Federated learning |
 | **Quantum API** | http://localhost:8081 | Quantum computing |
 | **Portal** | http://localhost:3000 | Government dashboard |
@@ -125,6 +158,19 @@ Ports: 30333 (P2P), 9933 (RPC), 9944 (WebSocket)
 Volume: blockchain-data (persistent chain state)
 ```
 
+**16 Custom Pallets**:
+- **Financial**: Economy (DALLA/bBZD), BelizeX (DEX), Payroll
+- **Governance**: Governance, Community
+- **Identity**: Identity (BelizeID), Compliance (KYC/AML), Oracle
+- **Infrastructure**: Belize Staking (PoUW), Consensus, Interoperability, Quantum
+- **Meshtastic**: Belize Mesh (LoRa networking) 🆕
+- **Registries**: LandLedger, BNS (.bz domains), Contracts (ink! 5.0)
+
+**Performance**:
+- Target: 2,000 TPS
+- Block time: 6 seconds
+- Max block size: 5MB
+
 **Configuration**:
 - Runs in development mode by default (`--alice` validator)
 - Exposes unsafe RPC/WS for local development
@@ -149,16 +195,30 @@ Port: 8080
 Volume: fl-models (trained models)
 ```
 
-**Features**:
-- Minimum 2 clients for training
+**Core Features**:
+- Flower federated learning orchestration
+- Minimum 2 clients for training (configurable)
 - 10 rounds by default
 - Publishes models to IPFS
-- Records contributions on-chain
+- Records contributions on-chain (PoUW rewards)
+
+**Privacy & Security** 🆕:
+- **Differential Privacy** (DP-SGD): Noise multiplier 1.1, gradient clipping
+- **Genetic Algorithm**: Population-based model evolution
+- **Byzantine Detection**: Cosine similarity verification (threshold 0.8)
+- **Gradient Verification**: Norm checking with historical analysis
+- **Data Poisoning Detection**: KL divergence, loss spike detection
+- **Data Leakage Detection**: Membership inference, gradient inversion
+
+**Security Scores**:
+- Quality: 40%
+- Timeliness: 30%
+- Honesty: 30%
 
 #### 4. Quantum Simulator
 ```yaml
 Image: Custom (Python 3.11 + Qiskit)
-Port: 8081
+Port: 8888
 Volume: quantum-results
 Backend: qasm_simulator (local)
 ```
@@ -168,7 +228,54 @@ Backend: qasm_simulator (local)
 - IBM Quantum (requires API key)
 - Azure Quantum (requires credentials)
 
-#### 5. PostgreSQL
+**Circuit Optimization** 🆕:
+- Optimization Level: 3 (maximum)
+- Max Qubits: 127
+- Max Shots: 100,000
+- Basis Gates: cx, id, rz, sx, x
+
+**Error Mitigation** 🆕:
+- **Zero Noise Extrapolation (ZNE)**: Noise factors [1, 2, 3]
+- **Readout Mitigation**: Calibration matrix correction
+- Hybrid quantum-classical optimization (COBYLA)
+
+**Use Cases**:
+- Quantum circuit simulation
+- Hybrid algorithms (VQE, QAOA)
+- Error-mitigated quantum computation
+- Cross-chain quantum workload distribution
+
+#### 5. Pakit Storage Service
+```yaml
+Image: Custom (Python 3.13)
+Port: 8001
+Volumes: pakit-dag-storage, pakit-cache
+```
+
+**Features**:
+- Sovereign DAG-based storage (primary)
+- Zero-Knowledge proof generation and verification
+- Quantum compression support
+- Content deduplication and chunking
+- Multi-tier caching (10GB default)
+- Optional IPFS/Arweave backends
+
+**Storage Backends**:
+- DAG Backend (sovereign, 3x replication)
+- IPFS (optional fallback)
+- Arweave (optional permanent storage)
+
+**ZK Proof Configuration**:
+- System: Groth16
+- On-upload verification: Optional
+- Cached proofs for performance
+
+**Public Access Mode**:
+- View/list: Public
+- Upload/download: Requires BelizeID
+- Blockchain proof registration: Authenticated only
+
+#### 6. PostgreSQL
 ```yaml
 Image: postgres:15-alpine
 Port: 5432
@@ -182,8 +289,9 @@ Database: belizechain
 - quantum_jobs (quantum computing logs)
 - fl_contributions (federated learning stats)
 - search_cache (explorer performance)
+- pakit_files (storage metadata with ZK proofs)
 
-#### 6. Redis
+#### 7. Redis
 ```yaml
 Image: redis:7-alpine
 Port: 6379
@@ -196,6 +304,41 @@ Password: belize_redis_2025
 - Rate limiting
 - WebSocket connection state
 - API response caching
+- Pakit DAG node discovery
+
+---
+
+## � **GEM Smart Contract Platform**
+
+### What is GEM?
+**General Ecosystem Machinery** - BelizeChain's ink! 5.0 smart contract platform
+
+### Key Components
+
+#### **BelizeX DEX Contracts** (v1.3.0)
+- **Factory**: Creates/manages trading pairs (350 lines, 8 tests)
+- **Pair**: Constant product AMM x*y=k (832 lines, 4 tests)
+- **Router**: Multi-hop routing, slippage protection (760 lines, 4 tests)
+
+#### **Token Standards**
+- **PSP37 Multi-Token**: Batch operations, mixed fungible/NFT (650 lines)
+- **Access Control**: Ownable, RBAC, Pausable patterns (550 lines)
+
+#### **SDKs Available**
+- **BelizeXSDK**: 22 methods for DEX operations (790 lines)
+- **MeshNetworkSDK**: LoRa mesh integration, node registration
+- **PrivacySDK**: Commitment computation, vote privacy
+
+#### **Integration Capabilities**
+GEM contracts can interact with:
+- DALLA/bBZD tokens (Economy pallet)
+- Nawal AI predictions
+- Kinich quantum computations
+- Pakit storage (DAG + ZK proofs)
+- BelizeID verification
+- Governance proposals
+- BNS .bz domain registry
+- Meshtastic mesh network
 
 ---
 
@@ -206,11 +349,42 @@ Password: belize_redis_2025
 Create `.env` file in `infra/` directory:
 
 ```bash
-# Blockchain
+# =====================
+# BLOCKCHAIN
+# =====================
 CHAIN_SPEC=dev
 BASE_PATH=/data
 RUST_LOG=info
 
+# Runtime Pallets (16 total)
+ENABLE_PALLET_ECONOMY=true
+ENABLE_PALLET_BELIZEX=true
+ENABLE_PALLET_PAYROLL=true
+ENABLE_PALLET_GOVERNANCE=true
+ENABLE_PALLET_COMMUNITY=true
+ENABLE_PALLET_IDENTITY=true
+ENABLE_PALLET_COMPLIANCE=true
+ENABLE_PALLET_ORACLE=true
+ENABLE_PALLET_STAKING=true
+ENABLE_PALLET_CONSENSUS=true
+ENABLE_PALLET_INTEROPERABILITY=true
+ENABLE_PALLET_QUANTUM=true
+ENABLE_PALLET_MESH=true
+ENABLE_PALLET_LANDLEDGER=true
+ENABLE_PALLET_BNS=true
+ENABLE_PALLET_CONTRACTS=true
+
+# Meshtastic LoRa Mesh
+MESH_NETWORK_ENABLED=false
+MESH_CHANNEL=BelizeChain
+
+# Performance
+TARGET_TPS=2000
+BLOCK_TIME=6
+
+# =====================
+# DATABASE & CACHE
+# =====================
 # Database
 POSTGRES_PASSWORD=belize_chain_secure_2025
 
@@ -220,13 +394,97 @@ REDIS_PASSWORD=belize_redis_2025
 # Grafana
 GRAFANA_PASSWORD=belize_grafana_2025
 
+# =====================
+# NAWAL FEDERATED LEARNING
+# =====================
 # Federated Learning
 FL_MIN_CLIENTS=2
 FL_ROUNDS=10
+NAWAL_MIN_PARTICIPANTS=3
+NAWAL_MAX_PARTICIPANTS=100
+NAWAL_ROUNDS_PER_EPOCH=10
+NAWAL_MIN_FIT_CLIENTS=2
 
+# Differential Privacy (DP-SGD)
+DIFFERENTIAL_PRIVACY_ENABLED=true
+DP_NOISE_MULTIPLIER=1.1
+DP_MAX_GRAD_NORM=1.0
+DP_DELTA=1e-5
+
+# Genetic Algorithm Model Evolution
+GENETIC_ALGORITHM_ENABLED=true
+GA_POPULATION_SIZE=10
+GA_GENERATIONS=5
+GA_MUTATION_RATE=0.1
+
+# Byzantine Detection & Security
+BYZANTINE_DETECTION_ENABLED=true
+COSINE_SIMILARITY_THRESHOLD=0.8
+GRADIENT_VERIFICATION_ENABLED=true
+GRADIENT_NORM_THRESHOLD=10.0
+
+# Data Poisoning Detection
+DATA_POISONING_DETECTION=true
+KL_DIVERGENCE_THRESHOLD=0.5
+LOSS_SPIKE_THRESHOLD=2.0
+
+# Data Leakage Detection
+DATA_LEAKAGE_DETECTION=true
+MEMBERSHIP_INFERENCE_ENABLED=true
+GRADIENT_INVERSION_DETECTION=true
+
+# =====================
+# KINICH QUANTUM COMPUTING
+# =====================
 # Quantum
 QUANTUM_BACKEND=qasm_simulator
 QUANTUM_SHOTS=1024
+KINICH_MAX_CONCURRENT_JOBS=10
+KINICH_DEFAULT_BACKEND=qasm_simulator
+KINICH_ENABLE_ERROR_MITIGATION=true
+
+# Azure Quantum
+AZURE_QUANTUM_ENABLED=true
+AZURE_QUANTUM_SUBSCRIPTION_ID=your_subscription_id
+AZURE_QUANTUM_RESOURCE_GROUP=your_resource_group
+AZURE_QUANTUM_WORKSPACE=your_workspace
+AZURE_QUANTUM_LOCATION=eastus
+
+# IBM Quantum
+IBM_QUANTUM_ENABLED=false
+IBM_QUANTUM_TOKEN=your_token_here
+IBM_QUANTUM_HUB=ibm-q
+IBM_QUANTUM_GROUP=open
+IBM_QUANTUM_PROJECT=main
+
+# Circuit Optimization
+CIRCUIT_OPTIMIZATION_LEVEL=3
+MAX_QUBITS=127
+MAX_SHOTS=100000
+
+# Error Mitigation
+ZNE_ENABLED=true
+ZNE_NOISE_FACTORS=[1,2,3]
+READOUT_MITIGATION_ENABLED=true
+
+# Hybrid Mode
+HYBRID_MODE_ENABLED=true
+CLASSICAL_OPTIMIZER=COBYLA
+TRANSPILE_OPTIMIZATION_LEVEL=3
+
+# =====================
+# PAKIT STORAGE
+# =====================
+# Pakit Storage
+PAKIT_API_PORT=8001
+DAG_BACKEND_ENABLED=true
+DAG_REPLICATION_FACTOR=3
+DAG_QUANTUM_COMPRESSION=true
+ZK_PROOF_ENABLED=true
+ZK_PROOF_SYSTEM=groth16
+PAKIT_PUBLIC_MODE=view-only
+MAX_FILE_SIZE=104857600
+CACHE_MAX_SIZE=10737418240
 
 # UI Apps
 NEXT_PUBLIC_BLOCKCHAIN_RPC=http://localhost:9933

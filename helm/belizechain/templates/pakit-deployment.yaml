@@ -1,4 +1,5 @@
 {{- if .Values.pakit.enabled }}
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -74,6 +75,45 @@ spec:
                 configMapKeyRef:
                   name: belizechain-config
                   key: PUBLIC_DOWNLOAD_ENABLED
+            # DAG Backend Configuration
+            - name: DAG_BACKEND_ENABLED
+              value: {{ .Values.pakit.config.dagBackendEnabled | quote }}
+            - name: DAG_REPLICATION_FACTOR
+              value: {{ .Values.pakit.config.dagReplicationFactor | quote }}
+            - name: DAG_QUANTUM_COMPRESSION
+              value: {{ .Values.pakit.config.dagQuantumCompression | quote }}
+            # ZK Proof Configuration
+            - name: ZK_PROOF_ENABLED
+              value: {{ .Values.pakit.config.zkProofEnabled | quote }}
+            - name: ZK_PROOF_SYSTEM
+              value: {{ .Values.pakit.config.zkProofSystem | quote }}
+            - name: ZK_VERIFY_ON_UPLOAD
+              value: {{ .Values.pakit.config.zkVerifyOnUpload | quote }}
+            - name: ZK_PROOF_CACHE_DIR
+              value: "/app/cache/zk-proofs"
+            # Storage Configuration
+            - name: MAX_FILE_SIZE
+              value: {{ .Values.pakit.config.maxFileSize | quote }}
+            - name: ENABLE_COMPRESSION
+              value: {{ .Values.pakit.config.enableCompression | quote }}
+            - name: COMPRESSION_ALGORITHMS
+              value: {{ .Values.pakit.config.compressionAlgorithms | quote }}
+            - name: ENABLE_DEDUPLICATION
+              value: {{ .Values.pakit.config.enableDeduplication | quote }}
+            - name: CHUNK_SIZE
+              value: {{ .Values.pakit.config.chunkSize | quote }}
+            # Cache Configuration
+            - name: CACHE_DIR
+              value: "/app/cache"
+            - name: CACHE_MAX_SIZE
+              value: {{ .Values.pakit.config.cacheMaxSize | quote }}
+            - name: CACHE_TTL
+              value: {{ .Values.pakit.config.cacheTtl | quote }}
+            # Public Access Mode
+            - name: PAKIT_PUBLIC_MODE
+              value: {{ .Values.pakit.config.publicMode | quote }}
+            - name: REQUIRE_BELIZEID_FOR_PROOFS
+              value: {{ .Values.pakit.config.requireBelizeIdForProofs | quote }}
           livenessProbe:
             httpGet:
               path: /health
@@ -89,15 +129,25 @@ spec:
           resources:
             {{- toYaml .Values.pakit.resources | nindent 12 }}
           volumeMounts:
-            - name: pakit-data
-              mountPath: /data
+            - name: pakit-storage
+              mountPath: /app/storage
+            - name: pakit-cache
+              mountPath: /app/cache
       volumes:
-        {{- if .Values.pakit.persistence.enabled }}
-        - name: pakit-data
+        {{- if .Values.pakit.persistence.storage.enabled }}
+        - name: pakit-storage
           persistentVolumeClaim:
-            claimName: pakit-pvc
+            claimName: pakit-storage-pvc
         {{- else }}
-        - name: pakit-data
+        - name: pakit-storage
+          emptyDir: {}
+        {{- end }}
+        {{- if .Values.pakit.persistence.cache.enabled }}
+        - name: pakit-cache
+          persistentVolumeClaim:
+            claimName: pakit-cache-pvc
+        {{- else }}
+        - name: pakit-cache
           emptyDir: {}
         {{- end }}
 {{- end }}

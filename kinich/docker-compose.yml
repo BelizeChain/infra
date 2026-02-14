@@ -49,10 +49,20 @@ services:
       - MAX_QUBITS=127
       - MAX_SHOTS=100000
       
-      # Error Mitigation
+      # Error Mitigation - Zero Noise Extrapolation (ZNE)
       - ZNE_ENABLED=true
       - ZNE_NOISE_FACTORS=[1,2,3]
+      
+      # Error Mitigation - Readout Mitigation
       - READOUT_MITIGATION_ENABLED=true
+      
+      # Hybrid Quantum-Classical
+      - HYBRID_MODE_ENABLED=${HYBRID_MODE_ENABLED:-true}
+      - CLASSICAL_OPTIMIZER=${CLASSICAL_OPTIMIZER:-COBYLA}
+      
+      # Circuit Transpilation
+      - TRANSPILE_OPTIMIZATION_LEVEL=3
+      - BASIS_GATES=${BASIS_GATES:-cx,id,rz,sx,x}
     depends_on:
       postgres:
         condition: service_healthy

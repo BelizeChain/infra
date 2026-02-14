@@ -61,8 +61,27 @@ pakit:
       memory: 8Gi
       cpu: 4000m
   persistence:
-    size: 1Ti  # 1 terabyte for production storage
-    storageClass: fast-ssd
+    storage:
+      size: 1Ti  # 1 terabyte for production storage
+      storageClass: fast-ssd
+    cache:
+      size: 100Gi  # Larger cache for production
+      storageClass: fast-ssd
+  config:
+    # Production DAG configuration
+    dagBackendEnabled: true
+    dagReplicationFactor: 5  # Higher replication for production
+    dagQuantumCompression: true
+    
+    # ZK Proof configuration
+    zkProofEnabled: true
+    zkProofSystem: groth16
+    zkVerifyOnUpload: true  # Enable verification in production
+    
+    # Production storage settings
+    maxFileSize: 524288000  # 500MB for production
+    cacheMaxSize: 107374182400  # 100GB cache
+    cacheTtl: 7200  # 2 hours
 
 postgresql:
   resources:
