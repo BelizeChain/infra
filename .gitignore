@@ -1,0 +1,187 @@
+# BelizeChain Infrastructure - Git Ignore
+# These files should always appear RED in git status (untracked)
+# NEVER commit these files - they contain secrets and environment-specific data
+
+# ============================================================================
+# SECURITY: Environment Files with Real Secrets
+# ============================================================================
+# These files should be created from .env.example but NEVER committed
+.env
+.env.local
+.env.production
+.env.staging
+.env.development
+.env.*.local
+*.env
+!.env.example
+
+# Secrets and Keys
+secrets/
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.cer
+*.der
+*-key.json
+service-account*.json
+kubeconfig
+kubeconfig.*
+*.kubeconfig
+
+# Vault and Secret Management
+vault-tokens/
+.vault-token
+vault.env
+secrets.yml
+secrets.yaml
+!secrets.example.yml
+!secrets.example.yaml
+
+# Azure/Cloud Credentials
+.azure/
+azure-credentials.json
+gcp-credentials.json
+aws-credentials
+
+# Kubernetes Secrets (decrypted)
+k8s/secrets/
+k8s/**/secrets.yaml
+k8s/**/secrets.yml
+!k8s/**/secrets.example.yaml
+helm/**/secrets.yaml
+helm/**/secrets.yml
+!helm/**/secrets.example.yaml
+
+# ============================================================================
+# DEPLOYMENT: Generated & Runtime Files
+# ============================================================================
+# Chain Specs (production contains real validator keys)
+chain-spec-production.json
+chain-spec-staging.json
+chain-spec-*.raw.json
+node-key
+node-key-*
+
+# Database & State
+*.db
+*.sqlite
+*.sqlite3
+db/
+data/
+postgres-data/
+redis-data/
+ipfs-data/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log.*
+*.log.gz
+
+# ============================================================================
+# DEVELOPMENT: Local Files
+# ============================================================================
+# IDE
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+venv/
+.venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+.pnp.*
+.yarn/
+
+# Rust
+target/
+Cargo.lock
+**/*.rs.bk
+
+# ============================================================================
+# DOCKER & CONTAINERS
+# ============================================================================
+# Docker volumes and generated files
+docker-compose.override.yml
+.dockerignore.local
+*.tar
+*.tar.gz
+
+# ============================================================================
+# KUBERNETES & HELM
+# ============================================================================
+# Helm generated files
+**/charts/*.tgz
+helm/**/Chart.lock
+helm/**/requirements.lock
+
+# Kustomize overlays (environment-specific)
+k8s/overlays/production/
+k8s/overlays/staging/
+!k8s/overlays/production/.gitkeep
+!k8s/overlays/staging/.gitkeep
+
+# ============================================================================
+# MONITORING & GRAFANA
+# ============================================================================
+grafana/data/
+prometheus/data/
+alertmanager/data/
+
+# ============================================================================
+# BACKUP & TEMPORARY FILES
+# ============================================================================
+*.bak
+*.backup
+*.tmp
+*.temp
+.cache/
+tmp/
+temp/
+
+# ============================================================================
+# TERRAFORM (if used in future)
+# ============================================================================
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
+!*.tfvars.example
+
+# ============================================================================
+# CI/CD
+# ============================================================================
+.github/secrets/
+
+# ============================================================================
+# NEVER IGNORE (Keep these in git)
+# ============================================================================
+!.env.example
+!.gitignore
+!.gitattributes
+!README.md
