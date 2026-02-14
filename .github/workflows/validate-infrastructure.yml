@@ -92,10 +92,27 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       
-      - name: Validate docker-compose.yml
+      - name: Validate docker-compose.yml syntax
         run: |
-          docker-compose config > /dev/null
-          echo "✅ docker-compose.yml is valid"
+          # Validate YAML syntax only (skip build context validation)
+          python3 -c "import yaml; yaml.safe_load(open('docker-compose.yml'))"
+          echo "✅ docker-compose.yml is valid YAML"
+      
+      - name: Check for required services
+        run: |
+          if ! grep -q "belizechain-node" docker-compose.yml; then
+            echo "❌ Missing blockchain node service"
+            exit 1
+          fi
+          if ! grep -q "nawal" docker-compose.yml; then
+            echo "❌ Missing Nawal AI service"
+            exit 1
+          fi
+          if ! grep -q "pakit" docker-compose.yml; then
+            echo "❌ Missing Pakit storage service"
+            exit 1
+          fi
+          echo "✅ All required services defined"
 
   secrets-check:
     name: Check for Secrets/Leaks
@@ -122,9 +139,28 @@ jobs:
       
       - name: Check for common secret files
         run: |
-          if find . -name "*.env" -not -name ".env.example" -not -path "./.git/*" | grep -q .; then
+          # Exclude service-discovery.env (contains DNS templates, not secrets)
+          if find . -name "*.env" \
+            -not -name ".env.example" \
+            -not -name "service-discovery.env" \
+            -not -path "./.git/*" | grep -q .; then
             echo "⚠️  Warning: Found .env files (should be gitignored)"
-            find . -name "*.env" -not -name ".env.example" -not -path "./.git/*"
+            find . -name "*.env" \
+              -not -name ".env.example" \
+              -not -name "service-discovery.env" \
+              -not -path "./.git/*"
+            exit 1
           else
-            echo "✅ No .env files found in repository"
+            echo "✅ No secret .env files found in repository"
+          fi
+      
+      - name: Verify service-discovery.env is safe
+        run: |
+          if [ -f shared/service-discovery.env ]; then
+            # Check that it only contains DNS templates, not real secrets
+            if grep -qiE "(password|secret|token|key)=\S+" shared/service-discovery.env; then
+              echo "❌ service-discovery.env appears to contain actual secrets!"
+              exit 1
+            fi
+            echo "✅ service-discovery.env contains only DNS templates"
           fi

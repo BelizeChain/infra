@@ -257,31 +257,3 @@ spec:
             port:
               number: 3001
       timeout: 30s
-
----
-# Kijka Explorer (Block Explorer)
-apiVersion: networking.istio.io/v1beta1
-kind: VirtualService
-metadata:
-  name: kijka-explorer
-  namespace: belizechain
-  labels:
-    app: kijka-explorer
-    component: ui
-spec:
-  hosts:
-    - "explorer.belizechain.bz"
-    - "kijka-explorer.belizechain.svc.cluster.local"
-  gateways:
-    - belizechain-gateway
-    - mesh
-  http:
-    - match:
-        - uri:
-            prefix: "/"
-      route:
-        - destination:
-            host: kijka-explorer.belizechain.svc.cluster.local
-            port:
-              number: 3002
-      timeout: 30s

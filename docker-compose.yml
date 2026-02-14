@@ -357,30 +357,6 @@ services:
     networks:
       - belizechain
 
-  # Kijka Explorer (Block Explorer)
-  kijka-explorer:
-    build:
-      context: ..
-      dockerfile: infra/Dockerfile.ui
-      args:
-        APP_NAME: kijka-explorer
-    container_name: belizechain-kijka-explorer
-    ports:
-      - "3002:3002"
-    volumes:
-      - ./ui/kijka-explorer/src:/app/src
-      - ./ui/kijka-explorer/public:/app/public
-    environment:
-      - NEXT_PUBLIC_BLOCKCHAIN_RPC=${NEXT_PUBLIC_MAYA_BLOCKCHAIN_RPC:-http://localhost:9933}
-      - NEXT_PUBLIC_BLOCKCHAIN_WS=${NEXT_PUBLIC_MAYA_BLOCKCHAIN_WS:-ws://localhost:9944}
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-belizechain}:${POSTGRES_PASSWORD}@${POSTGRES_HOST:-postgres}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-belizechain}
-    depends_on:
-      - belizechain-node
-      - postgres
-    restart: unless-stopped
-    networks:
-      - belizechain
-
   # Monitoring with Prometheus
   prometheus:
     image: prom/prometheus:latest

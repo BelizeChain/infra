@@ -126,9 +126,6 @@ ui:
   mayaWallet:
     enabled: true
     replicas: 1
-  kijkaExplorer:
-    enabled: true
-    replicas: 1
 
 # Istio (disabled for development simplicity)
 istio:
