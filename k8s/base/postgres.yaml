@@ -32,7 +32,7 @@ spec:
   resources:
     requests:
       storage: 50Gi
-  storageClassName: standard
+  storageClassName: managed-csi-premium
 
 ---
 apiVersion: apps/v1
@@ -129,4 +129,4 @@ spec:
         resources:
           requests:
             storage: 50Gi
-        storageClassName: standard
+        storageClassName: managed-csi-premium

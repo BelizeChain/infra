@@ -1,0 +1,32 @@
+{
+  "name": "BelizeChain Mainnet",
+  "id": "belizechain_mainnet",
+  "chainType": "Live",
+  "bootNodes": [],
+  "telemetryEndpoints": [
+    [
+      "wss://telemetry.belizechain.org/submit/",
+      0
+    ]
+  ],
+  "protocolId": "bzc",
+  "properties": {
+    "tokenSymbol": "DALLA",
+    "tokenDecimals": 12,
+    "ss58Format": 2025
+  },
+  "consensusEngine": "belize-pow",
+  "genesis": {
+    "runtime": {
+      "system": {},
+      "palletEconomy": {
+        "totalIssuance": "1000000000000000000000"
+      },
+      "palletBelizex": {},
+      "palletGovernance": {},
+      "palletIdentity": {},
+      "palletStaking": {},
+      "palletContracts": {}
+    }
+  }
+}

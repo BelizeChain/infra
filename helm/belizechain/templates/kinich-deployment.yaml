@@ -2,20 +2,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: kinich
+  name: kinich-quantum
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "belizechain.labels" . | nindent 4 }}
-    app: kinich
+    app: kinich-quantum
 spec:
   replicas: {{ .Values.kinich.replicaCount }}
   selector:
     matchLabels:
-      app: kinich
+      app: kinich-quantum
   template:
     metadata:
       labels:
-        app: kinich
+        app: kinich-quantum
         {{- include "belizechain.selectorLabels" . | nindent 8 }}
     spec:
       initContainers:
@@ -28,7 +28,7 @@ spec:
           image: busybox:1.35
           command: ['sh', '-c', 'until nc -z belizechain-node.{{ .Release.Namespace }}.svc.cluster.local 9944; do echo waiting for blockchain; sleep 2; done;']
       containers:
-        - name: kinich
+        - name: kinich-quantum
           image: "{{ .Values.kinich.image.repository }}:{{ .Values.kinich.image.tag }}"
           imagePullPolicy: {{ .Values.kinich.image.pullPolicy }}
           ports:

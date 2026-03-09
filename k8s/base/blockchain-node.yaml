@@ -17,7 +17,7 @@ spec:
       protocol: TCP
     - name: rpc
       port: 9933
-      targetPort: 9933
+      targetPort: 9944
       protocol: TCP
     - name: ws
       port: 9944
@@ -40,7 +40,7 @@ spec:
   resources:
     requests:
       storage: 100Gi
-  storageClassName: standard
+  storageClassName: managed-csi-premium
 
 ---
 apiVersion: apps/v1
@@ -68,8 +68,11 @@ spec:
     spec:
       containers:
         - name: belizechain-node
-          image: belizechain/node:latest
+          image: belizechainacr.azurecr.io/belizechain-node:latest
           imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
           ports:
             - name: p2p
               containerPort: 30333
@@ -102,53 +105,36 @@ spec:
             - --base-path
             - /data
             - --chain
-            - /app/chain-spec.json
+            - dev
             - --port
             - "30333"
             - --rpc-port
-            - "9933"
-            - --ws-port
             - "9944"
-            - --rpc-cors
-            - all
             - --unsafe-rpc-external
-            - --unsafe-ws-external
-            - --validator
-            - --name
-            - $(NODE_NAME)
           volumeMounts:
             - name: blockchain-data
               mountPath: /data
-            - name: chain-spec
-              mountPath: /app/chain-spec.json
-              subPath: chain-spec-dev.json
           resources:
             requests:
               memory: "4Gi"
-              cpu: "2000m"
+              cpu: "250m"
             limits:
               memory: "8Gi"
               cpu: "4000m"
           livenessProbe:
-            httpGet:
-              path: /health
-              port: 9933
+            tcpSocket:
+              port: 9944
             initialDelaySeconds: 60
             periodSeconds: 30
             timeoutSeconds: 10
             failureThreshold: 3
           readinessProbe:
-            httpGet:
-              path: /health
-              port: 9933
+            tcpSocket:
+              port: 9944
             initialDelaySeconds: 30
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 3
-      volumes:
-        - name: chain-spec
-          configMap:
-            name: chain-spec-config
   volumeClaimTemplates:
     - metadata:
         name: blockchain-data
@@ -158,4 +144,4 @@ spec:
         resources:
           requests:
             storage: 100Gi
-        storageClassName: standard
+        storageClassName: managed-csi-premium

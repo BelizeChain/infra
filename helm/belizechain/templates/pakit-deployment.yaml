@@ -3,20 +3,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: pakit
+  name: pakit-storage
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "belizechain.labels" . | nindent 4 }}
-    app: pakit
+    app: pakit-storage
 spec:
   replicas: {{ .Values.pakit.replicaCount }}
   selector:
     matchLabels:
-      app: pakit
+      app: pakit-storage
   template:
     metadata:
       labels:
-        app: pakit
+        app: pakit-storage
         {{- include "belizechain.selectorLabels" . | nindent 8 }}
     spec:
       initContainers:
@@ -27,7 +27,7 @@ spec:
           command: ['sh', '-c', 'until nc -z belizechain-node.{{ .Release.Namespace }}.svc.cluster.local 9944; do echo waiting for blockchain; sleep 2; done;']
         {{- end }}
       containers:
-        - name: pakit
+        - name: pakit-storage
           image: "{{ .Values.pakit.image.repository }}:{{ .Values.pakit.image.tag }}"
           imagePullPolicy: {{ .Values.pakit.image.pullPolicy }}
           ports:

@@ -13,7 +13,7 @@ blockchainNode:
   enabled: true
   replicaCount: 1
   image:
-    repository: belizechain/node
+    repository: belizechainacr.azurecr.io/belizechain-node
     tag: latest
     pullPolicy: IfNotPresent
   service:
@@ -69,7 +69,7 @@ nawal:
   enabled: true
   replicaCount: 2
   image:
-    repository: belizechain/nawal
+    repository: belizechainacr.azurecr.io/nawal
     tag: latest
     pullPolicy: IfNotPresent
   service:
@@ -121,7 +121,7 @@ kinich:
   enabled: true
   replicaCount: 2
   image:
-    repository: belizechain/kinich
+    repository: belizechainacr.azurecr.io/kinich-quantum
     tag: latest
     pullPolicy: IfNotPresent
   service:
@@ -166,7 +166,7 @@ pakit:
   enabled: true
   replicaCount: 2
   image:
-    repository: belizechain/pakit
+    repository: belizechainacr.azurecr.io/pakit-storage
     tag: latest
     pullPolicy: IfNotPresent
   service:
@@ -350,15 +350,15 @@ ingress:
       paths:
         - path: /nawal
           pathType: Prefix
-          service: nawal
+          service: nawal-ai
           port: 8080
         - path: /kinich
           pathType: Prefix
-          service: kinich
+          service: kinich-quantum
           port: 8888
         - path: /pakit
           pathType: Prefix
-          service: pakit
+          service: pakit-storage
           port: 8001
   tls:
     - secretName: belizechain-tls

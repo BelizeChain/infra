@@ -4,7 +4,7 @@
 global:
   environment: production
   domain: belizechain.org
-  storageClass: fast-ssd  # Premium storage for production
+  storageClass: managed-csi-premium  # Premium storage for production
 
 blockchainNode:
   replicaCount: 3  # Minimum 3 for high availability
@@ -21,7 +21,7 @@ blockchainNode:
       cpu: 8000m
   persistence:
     size: 500Gi  # Large storage for mainnet
-    storageClass: fast-ssd
+    storageClass: managed-csi-premium
 
 nawal:
   replicaCount: 3
@@ -34,7 +34,7 @@ nawal:
       cpu: 8000m
   persistence:
     size: 200Gi
-    storageClass: fast-ssd
+    storageClass: managed-csi-premium
 
 kinich:
   replicaCount: 3
@@ -47,7 +47,7 @@ kinich:
       cpu: 8000m
   persistence:
     size: 100Gi
-    storageClass: fast-ssd
+    storageClass: managed-csi-premium
   config:
     maxConcurrentJobs: 50
 
@@ -63,10 +63,10 @@ pakit:
   persistence:
     storage:
       size: 1Ti  # 1 terabyte for production storage
-      storageClass: fast-ssd
+      storageClass: managed-csi-premium
     cache:
       size: 100Gi  # Larger cache for production
-      storageClass: fast-ssd
+      storageClass: managed-csi-premium
   config:
     # Production DAG configuration
     dagBackendEnabled: true
@@ -93,7 +93,7 @@ postgresql:
       cpu: 8000m
   persistence:
     size: 500Gi
-    storageClass: fast-ssd
+    storageClass: managed-csi-premium
 
 redis:
   resources:
@@ -105,7 +105,7 @@ redis:
       cpu: 4000m
   persistence:
     size: 50Gi
-    storageClass: fast-ssd
+    storageClass: managed-csi-premium
 
 ipfs:
   resources:
@@ -118,10 +118,10 @@ ipfs:
   persistence:
     data:
       size: 1Ti
-      storageClass: fast-ssd
+      storageClass: managed-csi-premium
     staging:
       size: 100Gi
-      storageClass: fast-ssd
+      storageClass: managed-csi-premium
 
 prometheus:
   resources:
@@ -133,7 +133,7 @@ prometheus:
       cpu: 8000m
   persistence:
     size: 500Gi
-    storageClass: fast-ssd
+    storageClass: managed-csi-premium
   config:
     retention: 90d
 
@@ -161,15 +161,15 @@ ingress:
       paths:
         - path: /nawal
           pathType: Prefix
-          service: nawal
+          service: nawal-ai
           port: 8080
         - path: /kinich
           pathType: Prefix
-          service: kinich
+          service: kinich-quantum
           port: 8888
         - path: /pakit
           pathType: Prefix
-          service: pakit
+          service: pakit-storage
           port: 8001
   tls:
     - secretName: belizechain-production-tls

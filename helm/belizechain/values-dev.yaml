@@ -52,15 +52,15 @@ ingress:
       paths:
         - path: /nawal
           pathType: Prefix
-          service: nawal
+          service: nawal-ai
           port: 8080
         - path: /kinich
           pathType: Prefix
-          service: kinich
+          service: kinich-quantum
           port: 8888
         - path: /pakit
           pathType: Prefix
-          service: pakit
+          service: pakit-storage
           port: 8001
 
 autoscaling:

@@ -22,9 +22,9 @@ data:
   REDIS_PORT: "6379"
   IPFS_API: {{ include "belizechain.ipfsApiUrl" . | quote }}
   IPFS_GATEWAY: {{ printf "http://ipfs.%s.svc.cluster.local:8082" .Release.Namespace | quote }}
-  NAWAL_API: {{ printf "http://nawal.%s.svc.cluster.local:%d" .Release.Namespace (.Values.nawal.service.port | int) | quote }}
-  KINICH_API: {{ printf "http://kinich.%s.svc.cluster.local:%d" .Release.Namespace (.Values.kinich.service.port | int) | quote }}
-  PAKIT_API: {{ printf "http://pakit.%s.svc.cluster.local:%d" .Release.Namespace (.Values.pakit.service.port | int) | quote }}
+  NAWAL_API: {{ printf "http://nawal-ai.%s.svc.cluster.local:%d" .Release.Namespace (.Values.nawal.service.port | int) | quote }}
+  KINICH_API: {{ printf "http://kinich-quantum.%s.svc.cluster.local:%d" .Release.Namespace (.Values.kinich.service.port | int) | quote }}
+  PAKIT_API: {{ printf "http://pakit-storage.%s.svc.cluster.local:%d" .Release.Namespace (.Values.pakit.service.port | int) | quote }}
   
   # Blockchain Configuration
   CHAIN_SPEC: {{ .Values.blockchainNode.config.chain | quote }}

@@ -10,22 +10,43 @@ resources:
   - blockchain-node.yaml
   - postgres.yaml
   - redis.yaml
-  - ipfs.yaml
   - nawal.yaml
   - kinich.yaml
   - pakit.yaml
   - monitoring.yaml
 
-commonLabels:
-  app.kubernetes.io/managed-by: kustomize
-  app.kubernetes.io/part-of: belizechain-platform
+labels:
+  - pairs:
+      app.kubernetes.io/managed-by: kustomize
+      app.kubernetes.io/part-of: belizechain-platform
+    includeSelectors: false
 
 images:
-  - name: belizechain/node
+  - name: belizechainacr.azurecr.io/belizechain-node
     newTag: latest
-  - name: belizechain/nawal
+  - name: belizechainacr.azurecr.io/nawal
     newTag: latest
-  - name: belizechain/kinich
+  - name: belizechainacr.azurecr.io/kinich-quantum
     newTag: latest
-  - name: belizechain/pakit
+  - name: belizechainacr.azurecr.io/pakit-storage
     newTag: latest
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+configMapGenerator:
+  - name: chain-spec-config
+    files:
+      - chain-spec-dev.json=chain-spec-dev.json
+  - name: postgres-init-scripts
+    files:
+      - init.sql=postgres-init.sql
+  - name: prometheus-config
+    files:
+      - prometheus.yml=prometheus.yml
+  - name: grafana-dashboards
+    files:
+      - dashboard.yml=grafana-dashboard.yml
+  - name: grafana-datasources
+    files:
+      - datasources.yml=grafana-datasources.yml

@@ -2,20 +2,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nawal
+  name: nawal-ai
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "belizechain.labels" . | nindent 4 }}
-    app: nawal
+    app: nawal-ai
 spec:
   replicas: {{ .Values.nawal.replicaCount }}
   selector:
     matchLabels:
-      app: nawal
+      app: nawal-ai
   template:
     metadata:
       labels:
-        app: nawal
+        app: nawal-ai
         {{- include "belizechain.selectorLabels" . | nindent 8 }}
     spec:
       initContainers:
@@ -38,7 +38,7 @@ spec:
           image: busybox:1.35
           command: ['sh', '-c', 'until nc -z belizechain-node.{{ .Release.Namespace }}.svc.cluster.local 9944; do echo waiting for blockchain; sleep 2; done;']
       containers:
-        - name: nawal
+        - name: nawal-ai
           image: "{{ .Values.nawal.image.repository }}:{{ .Values.nawal.image.tag }}"
           imagePullPolicy: {{ .Values.nawal.image.pullPolicy }}
           ports:

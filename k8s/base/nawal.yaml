@@ -2,11 +2,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: nawal
+  name: nawal-ai
   namespace: belizechain
   labels:
-    app: nawal
-    app.kubernetes.io/name: nawal
+    app: nawal-ai
+    app.kubernetes.io/name: nawal-ai
     app.kubernetes.io/component: ai
 spec:
   type: ClusterIP
@@ -16,29 +16,29 @@ spec:
       targetPort: 8080
       protocol: TCP
   selector:
-    app: nawal
+    app: nawal-ai
 
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nawal
+  name: nawal-ai
   namespace: belizechain
   labels:
-    app: nawal
-    app.kubernetes.io/name: nawal
+    app: nawal-ai
+    app.kubernetes.io/name: nawal-ai
     app.kubernetes.io/component: ai
     app.kubernetes.io/part-of: belizechain-platform
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
-      app: nawal
+      app: nawal-ai
   template:
     metadata:
       labels:
-        app: nawal
-        app.kubernetes.io/name: nawal
+        app: nawal-ai
+        app.kubernetes.io/name: nawal-ai
         app.kubernetes.io/component: ai
     spec:
       # Init containers - strict dependency validation
@@ -66,7 +66,7 @@ spec:
                 configMapKeyRef:
                   name: belizechain-config
                   key: POSTGRES_PORT
-        
+
         - name: wait-for-redis
           image: busybox:1.35
           command:
@@ -90,20 +90,7 @@ spec:
                 configMapKeyRef:
                   name: belizechain-config
                   key: REDIS_PORT
-        
-        - name: wait-for-ipfs
-          image: busybox:1.35
-          command:
-            - 'sh'
-            - '-c'
-            - |
-              echo "Waiting for IPFS at ipfs.belizechain.svc.cluster.local:5001..."
-              until nc -z ipfs.belizechain.svc.cluster.local 5001; do
-                echo "IPFS not ready, sleeping 2s..."
-                sleep 2
-              done
-              echo "IPFS is ready!"
-        
+
         - name: wait-for-blockchain
           image: busybox:1.35
           command:
@@ -116,10 +103,10 @@ spec:
                 sleep 2
               done
               echo "Blockchain is ready!"
-      
+
       containers:
-        - name: nawal
-          image: belizechain/nawal:latest
+        - name: nawal-ai
+          image: belizechainacr.azurecr.io/nawal:latest
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
@@ -249,11 +236,11 @@ metadata:
   name: fl-models
   namespace: belizechain
   labels:
-    app: nawal
+    app: nawal-ai
 spec:
   accessModes:
     - ReadWriteMany
   resources:
     requests:
       storage: 50Gi
-  storageClassName: standard
+  storageClassName: azurefile-csi-premium
