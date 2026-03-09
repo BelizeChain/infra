@@ -16,7 +16,7 @@ BelizeChain Services:
    - P2P Port: {{ .Values.blockchainNode.service.p2pPort }}
    
    To connect to the blockchain node:
-   $ kubectl port-forward -n {{ .Release.Namespace }} svc/belizechain-node {{ .Values.blockchainNode.service.wsPort }}:{{ .Values.blockchainNode.service.wsPort }}
+   $ kubectl port-forward -n {{ .Release.Namespace }} svc/ceiba-node {{ .Values.blockchainNode.service.wsPort }}:{{ .Values.blockchainNode.service.wsPort }}
 {{- end }}
 
 {{- if .Values.nawal.enabled }}

@@ -3,15 +3,15 @@
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
-  name: belizechain-node-http
+  name: ceiba-node-http
   namespace: belizechain
   labels:
-    app: belizechain-node
+    app: ceiba-node
     protocol: http-rpc
 spec:
   hosts:
     - "rpc.belizechain.bz"
-    - "belizechain-node.belizechain.svc.cluster.local"
+    - "ceiba-node.belizechain.svc.cluster.local"
   gateways:
     - belizechain-gateway
     - mesh  # Internal mesh traffic
@@ -20,7 +20,7 @@ spec:
         - port: 9933
       route:
         - destination:
-            host: belizechain-node.belizechain.svc.cluster.local
+            host: ceiba-node.belizechain.svc.cluster.local
             port:
               number: 9933
       timeout: 60s
@@ -34,15 +34,15 @@ spec:
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
-  name: belizechain-node-ws
+  name: ceiba-node-ws
   namespace: belizechain
   labels:
-    app: belizechain-node
+    app: ceiba-node
     protocol: websocket
 spec:
   hosts:
     - "rpc.belizechain.bz"
-    - "belizechain-node.belizechain.svc.cluster.local"
+    - "ceiba-node.belizechain.svc.cluster.local"
   gateways:
     - belizechain-gateway
     - mesh
@@ -51,7 +51,7 @@ spec:
         - port: 9944
       route:
         - destination:
-            host: belizechain-node.belizechain.svc.cluster.local
+            host: ceiba-node.belizechain.svc.cluster.local
             port:
               number: 9944
       timeout: 0s  # No timeout for WebSocket connections

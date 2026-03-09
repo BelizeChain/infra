@@ -1,5 +1,6 @@
-# Development Environment Values
-# Override default values for development deployment
+# Development Environment Values — Single-Node PoC
+# Fits all services on one Standard_D4s_v3 (4 vCPU / 16GB RAM)
+# Proves BelizeChain runs on hardware equivalent to a modern laptop
 
 global:
   environment: dev
@@ -7,43 +8,100 @@ global:
 
 blockchainNode:
   replicaCount: 1
+  image:
+    repository: belizechainacr.azurecr.io/ceiba-node
   config:
     chain: dev
     logLevel: debug
     validator: true
   persistence:
-    size: 50Gi  # Smaller for dev
+    size: 50Gi
+  resources:
+    requests:
+      memory: 1Gi
+      cpu: 250m
+    limits:
+      memory: 3Gi
+      cpu: 1500m
 
 nawal:
-  replicaCount: 1  # Single replica for dev
+  replicaCount: 1
   config:
-    minParticipants: 2  # Lower for testing
+    minParticipants: 2
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 1Gi
+      cpu: 500m
 
 kinich:
-  replicaCount: 1  # Single replica for dev
+  replicaCount: 1
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 1Gi
+      cpu: 500m
 
 pakit:
-  replicaCount: 1  # Single replica for dev
+  replicaCount: 1
   config:
-    # Dev DAG configuration
     dagBackendEnabled: true
-    dagReplicationFactor: 2  # Lower replication for dev
-    
-    # ZK Proof configuration (testing)
+    dagReplicationFactor: 2
     zkProofEnabled: true
-    zkVerifyOnUpload: false  # Faster uploads in dev
-    
-    # Dev storage settings
-    maxFileSize: 52428800  # 50MB for dev
-    cacheMaxSize: 5368709120  # 5GB cache
+    zkVerifyOnUpload: false
+    maxFileSize: 52428800
+    cacheMaxSize: 5368709120
+  resources:
+    requests:
+      memory: 128Mi
+      cpu: 100m
+    limits:
+      memory: 512Mi
+      cpu: 500m
+
+postgresql:
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 1Gi
+      cpu: 500m
+
+redis:
+  resources:
+    requests:
+      memory: 128Mi
+      cpu: 50m
+    limits:
+      memory: 512Mi
+      cpu: 250m
 
 prometheus:
   config:
-    retention: 7d  # Shorter retention for dev
+    retention: 7d
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 1Gi
+      cpu: 500m
 
 grafana:
   config:
-    allowSignUp: true  # Allow dev testing
+    allowSignUp: true
+  resources:
+    requests:
+      memory: 128Mi
+      cpu: 50m
+    limits:
+      memory: 512Mi
+      cpu: 250m
 
 ingress:
   enabled: true

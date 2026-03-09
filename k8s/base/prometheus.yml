@@ -8,11 +8,11 @@ scrape_configs:
       - targets:
           - localhost:9090
 
-  - job_name: belizechain-node
+  - job_name: ceiba-node
     metrics_path: /metrics
     static_configs:
       - targets:
-          - belizechain-node:9933
+          - ceiba-node:9933
 
   - job_name: nawal-ai
     metrics_path: /metrics

@@ -81,7 +81,7 @@ Redis connection string
 Blockchain RPC WebSocket URL
 */}}
 {{- define "belizechain.blockchainRpcUrl" -}}
-{{- printf "ws://belizechain-node.%s.svc.cluster.local:9944" .Release.Namespace }}
+{{- printf "ws://ceiba-node.%s.svc.cluster.local:9944" .Release.Namespace }}
 {{- end }}
 
 {{/*

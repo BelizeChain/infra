@@ -2,11 +2,11 @@ version: '3.8'
 
 services:
   # BelizeChain Blockchain Node
-  belizechain-node:
+  ceiba-node:
     build:
       context: ..
       dockerfile: infra/Dockerfile.node
-    container_name: belizechain-node
+    container_name: ceiba-node
     ports:
       - "${P2P_PORT:-30333}:30333"  # P2P port
       - "${RPC_PORT:-9933}:9933"    # RPC port
@@ -18,7 +18,7 @@ services:
       - RUST_LOG=${LOG_LEVEL:-info}
       - BELIZECHAIN_CHAIN=${CHAIN:-dev}
       - BELIZECHAIN_BASE_PATH=${BASE_PATH:-/data}
-      - NODE_NAME=${NODE_NAME:-BelizeChain-Node-1}
+      - NODE_NAME=${NODE_NAME:-Ceiba-Node-1}
       
       # Runtime Pallets Configuration
       - ENABLE_PALLET_ECONOMY=true
@@ -118,7 +118,7 @@ services:
       
       # Integration
       - IPFS_API=${IPFS_API:-http://ipfs:5001}
-      - BLOCKCHAIN_RPC=${BLOCKCHAIN_RPC:-ws://belizechain-node:9944}
+      - BLOCKCHAIN_RPC=${BLOCKCHAIN_RPC:-ws://ceiba-node:9944}
       - POSTGRES_HOST=${POSTGRES_HOST:-postgres}
       - POSTGRES_PORT=${POSTGRES_PORT:-5432}
       - POSTGRES_DB=${POSTGRES_DB:-belizechain}
@@ -129,7 +129,7 @@ services:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
     depends_on:
       - ipfs
-      - belizechain-node
+      - ceiba-node
       - postgres
       - redis
     restart: unless-stopped
@@ -209,14 +209,14 @@ services:
       
       # Error Mitigation - Readout Mitigation
       - READOUT_MITIGATION_ENABLED=${READOUT_MITIGATION_ENABLED:-true}
-      - BLOCKCHAIN_RPC=${BLOCKCHAIN_RPC:-ws://belizechain-node:9944}
+      - BLOCKCHAIN_RPC=${BLOCKCHAIN_RPC:-ws://ceiba-node:9944}
       - POSTGRES_HOST=${POSTGRES_HOST:-postgres}
       - POSTGRES_PORT=${POSTGRES_PORT:-5432}
       - POSTGRES_DB=${POSTGRES_DB:-belizechain}
       - POSTGRES_USER=${POSTGRES_USER:-belizechain}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     depends_on:
-      - belizechain-node
+      - ceiba-node
       - postgres
     restart: unless-stopped
     networks:
@@ -254,7 +254,7 @@ services:
       
       # Blockchain Integration
       - BLOCKCHAIN_ENABLED=${BLOCKCHAIN_ENABLED:-false}
-      - BLOCKCHAIN_RPC=${BLOCKCHAIN_RPC:-ws://belizechain-node:9944}
+      - BLOCKCHAIN_RPC=${BLOCKCHAIN_RPC:-ws://ceiba-node:9944}
       - REQUIRE_BELIZEID_FOR_PROOFS=${REQUIRE_BELIZEID_FOR_PROOFS:-true}
       
       # Sovereign DAG Backend (PRIMARY)
@@ -325,7 +325,7 @@ services:
       - NEXT_PUBLIC_NAWAL_API=${NEXT_PUBLIC_NAWAL_API:-http://localhost:8080}
       - NEXT_PUBLIC_KINICH_API=${NEXT_PUBLIC_KINICH_API:-http://localhost:8888}
     depends_on:
-      - belizechain-node
+      - ceiba-node
       - ipfs
     restart: unless-stopped
     networks:
@@ -352,7 +352,7 @@ services:
       - NEXT_PUBLIC_KINICH_API=${NEXT_PUBLIC_KINICH_API:-http://localhost:8888}
       - NEXT_PUBLIC_PAKIT_API=${NEXT_PUBLIC_PAKIT_API:-http://localhost:8001}
     depends_on:
-      - belizechain-node
+      - ceiba-node
     restart: unless-stopped
     networks:
       - belizechain

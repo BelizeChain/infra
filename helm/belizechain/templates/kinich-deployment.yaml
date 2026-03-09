@@ -26,7 +26,7 @@ spec:
         # Wait for Blockchain
         - name: wait-for-blockchain
           image: busybox:1.35
-          command: ['sh', '-c', 'until nc -z belizechain-node.{{ .Release.Namespace }}.svc.cluster.local 9944; do echo waiting for blockchain; sleep 2; done;']
+          command: ['sh', '-c', 'until nc -z ceiba-node.{{ .Release.Namespace }}.svc.cluster.local 9944; do echo waiting for blockchain; sleep 2; done;']
       containers:
         - name: kinich-quantum
           image: "{{ .Values.kinich.image.repository }}:{{ .Values.kinich.image.tag }}"

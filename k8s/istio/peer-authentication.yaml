@@ -32,12 +32,12 @@ spec:
 apiVersion: security.istio.io/v1beta1
 kind: PeerAuthentication
 metadata:
-  name: belizechain-node
+  name: ceiba-node
   namespace: belizechain
 spec:
   selector:
     matchLabels:
-      app: belizechain-node
+      app: ceiba-node
   mtls:
     mode: STRICT  # Default to STRICT
   portLevelMtls:

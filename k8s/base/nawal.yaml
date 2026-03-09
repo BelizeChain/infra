@@ -97,8 +97,8 @@ spec:
             - 'sh'
             - '-c'
             - |
-              echo "Waiting for BelizeChain RPC at belizechain-node.belizechain.svc.cluster.local:9944..."
-              until nc -z belizechain-node.belizechain.svc.cluster.local 9944; do
+              echo "Waiting for BelizeChain RPC at ceiba-node.belizechain.svc.cluster.local:9944..."
+              until nc -z ceiba-node.belizechain.svc.cluster.local 9944; do
                 echo "Blockchain not ready, sleeping 2s..."
                 sleep 2
               done

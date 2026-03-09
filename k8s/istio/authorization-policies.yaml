@@ -40,7 +40,7 @@ spec:
     - from:
         - source:
             principals:
-              - "cluster.local/ns/belizechain/sa/belizechain-node"
+              - "cluster.local/ns/belizechain/sa/ceiba-node"
               - "cluster.local/ns/belizechain/sa/nawal"
               - "cluster.local/ns/belizechain/sa/kinich"
       to:
@@ -120,7 +120,7 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app: belizechain-node
+      app: ceiba-node
   action: ALLOW
   rules:
     # Allow public read-only RPC methods

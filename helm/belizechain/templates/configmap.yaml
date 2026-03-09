@@ -13,7 +13,7 @@ data:
   
   # Service Discovery
   BLOCKCHAIN_RPC: {{ include "belizechain.blockchainRpcUrl" . | quote }}
-  BLOCKCHAIN_HTTP: {{ printf "http://belizechain-node.%s.svc.cluster.local:9933" .Release.Namespace | quote }}
+  BLOCKCHAIN_HTTP: {{ printf "http://ceiba-node.%s.svc.cluster.local:9933" .Release.Namespace | quote }}
   POSTGRES_HOST: {{ printf "postgres.%s.svc.cluster.local" .Release.Namespace | quote }}
   POSTGRES_PORT: "5432"
   POSTGRES_DATABASE: {{ .Values.postgresql.config.database | quote }}

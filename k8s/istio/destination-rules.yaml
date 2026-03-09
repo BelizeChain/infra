@@ -63,10 +63,10 @@ spec:
 apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
-  name: belizechain-node
+  name: ceiba-node
   namespace: belizechain
 spec:
-  host: belizechain-node.belizechain.svc.cluster.local
+  host: ceiba-node.belizechain.svc.cluster.local
   trafficPolicy:
     tls:
       mode: ISTIO_MUTUAL

@@ -9,7 +9,7 @@ metadata:
     app.kubernetes.io/part-of: belizechain-platform
 data:
   # Blockchain Configuration
-  BLOCKCHAIN_RPC: "ws://belizechain-node:9944"
+  BLOCKCHAIN_RPC: "ws://ceiba-node:9944"
   CHAIN: "dev"
   LOG_LEVEL: "info"
 
@@ -158,8 +158,8 @@ data:
   WS_PORT: "9944"
 
   # UI Configuration
-  NEXT_PUBLIC_MAYA_BLOCKCHAIN_RPC: "http://belizechain-node:9933"
-  NEXT_PUBLIC_MAYA_BLOCKCHAIN_WS: "ws://belizechain-node:9944"
+  NEXT_PUBLIC_MAYA_BLOCKCHAIN_RPC: "http://ceiba-node:9933"
+  NEXT_PUBLIC_MAYA_BLOCKCHAIN_WS: "ws://ceiba-node:9944"
   NEXT_PUBLIC_IPFS_GATEWAY: "http://ipfs:8082"
   NEXT_PUBLIC_NAWAL_API: "http://nawal-ai:8080"
   NEXT_PUBLIC_KINICH_API: "http://kinich-quantum:8888"

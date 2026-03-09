@@ -15,7 +15,7 @@ This directory contains service discovery templates for BelizeChain's multi-comp
 
 **Example:**
 ```bash
-export BLOCKCHAIN_RPC=ws://belizechain-node.belizechain.svc.cluster.local:9944
+export BLOCKCHAIN_RPC=ws://ceiba-node.belizechain.svc.cluster.local:9944
 export NAWAL_API=http://nawal.belizechain.svc.cluster.local:8080
 ```
 
@@ -29,7 +29,7 @@ export NAWAL_API=http://nawal.belizechain.svc.cluster.local:8080
 
 **Example:**
 ```bash
-export BLOCKCHAIN_RPC=ws://belizechain-node:9944
+export BLOCKCHAIN_RPC=ws://ceiba-node:9944
 export POSTGRES_HOST=postgres
 ```
 
@@ -81,7 +81,7 @@ const getBlockchainUrl = () => {
     return process.env.PROD_BLOCKCHAIN_RPC_WS || 'wss://rpc.belizechain.bz';
   }
   if (process.env.KUBERNETES_SERVICE_HOST) {
-    return 'ws://belizechain-node.belizechain.svc.cluster.local:9944';
+    return 'ws://ceiba-node.belizechain.svc.cluster.local:9944';
   }
   return process.env.LOCAL_BLOCKCHAIN_RPC_WS || 'ws://localhost:9944';
 };
@@ -96,11 +96,11 @@ Service discovery not needed (listens on configured ports), but other services d
 apiVersion: v1
 kind: Service
 metadata:
-  name: belizechain-node
+  name: ceiba-node
   namespace: belizechain
 spec:
   selector:
-    app: belizechain-node
+    app: ceiba-node
   ports:
     - name: rpc-http
       port: 9933
@@ -117,7 +117,7 @@ spec:
 ```bash
 # In belizechain-dev namespace
 kubectl set env deployment/nawal \
-  BLOCKCHAIN_RPC=ws://belizechain-node.belizechain-prod.svc.cluster.local:9944
+  BLOCKCHAIN_RPC=ws://ceiba-node.belizechain-prod.svc.cluster.local:9944
 ```
 
 ### Scenario: Multi-Region (East US -> West US)
@@ -148,11 +148,11 @@ class Settings:
     
     # Fall back to auto-detected K8s service
     if not BLOCKCHAIN_RPC and os.getenv('KUBERNETES_SERVICE_HOST'):
-        BLOCKCHAIN_RPC = 'ws://belizechain-node.belizechain.svc.cluster.local:9944'
+        BLOCKCHAIN_RPC = 'ws://ceiba-node.belizechain.svc.cluster.local:9944'
     
     # Fall back to Docker Compose
     if not BLOCKCHAIN_RPC and os.path.exists('/.dockerenv'):
-        BLOCKCHAIN_RPC = 'ws://belizechain-node:9944'
+        BLOCKCHAIN_RPC = 'ws://ceiba-node:9944'
     
     # Final fallback to localhost
     BLOCKCHAIN_RPC = BLOCKCHAIN_RPC or 'ws://localhost:9944'
@@ -181,7 +181,7 @@ No code changes required - just use FQDN service names.
 
 Test from inside pod:
 ```bash
-kubectl exec -it nawal-pod -- nslookup belizechain-node.belizechain.svc.cluster.local
+kubectl exec -it nawal-pod -- nslookup ceiba-node.belizechain.svc.cluster.local
 ```
 
 ### Connection Refused
@@ -193,7 +193,7 @@ kubectl get svc -n belizechain
 
 Verify endpoints:
 ```bash
-kubectl get endpoints belizechain-node -n belizechain
+kubectl get endpoints ceiba-node -n belizechain
 ```
 
 ### Cross-Namespace Access Denied
@@ -207,7 +207,7 @@ metadata:
 spec:
   podSelector:
     matchLabels:
-      app: belizechain-node
+      app: ceiba-node
   ingress:
     - from:
         - namespaceSelector:

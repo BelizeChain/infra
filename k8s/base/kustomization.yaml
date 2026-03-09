@@ -22,7 +22,7 @@ labels:
     includeSelectors: false
 
 images:
-  - name: belizechainacr.azurecr.io/belizechain-node
+  - name: belizechainacr.azurecr.io/ceiba-node
     newTag: latest
   - name: belizechainacr.azurecr.io/nawal
     newTag: latest

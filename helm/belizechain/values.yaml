@@ -13,7 +13,7 @@ blockchainNode:
   enabled: true
   replicaCount: 1
   image:
-    repository: belizechainacr.azurecr.io/belizechain-node
+    repository: belizechainacr.azurecr.io/ceiba-node
     tag: latest
     pullPolicy: IfNotPresent
   service:

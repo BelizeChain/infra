@@ -100,7 +100,7 @@ jobs:
       
       - name: Check for required services
         run: |
-          if ! grep -q "belizechain-node" docker-compose.yml; then
+          if ! grep -q "ceiba-node" docker-compose.yml; then
             echo "❌ Missing blockchain node service"
             exit 1
           fi

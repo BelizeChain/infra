@@ -2,25 +2,25 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: belizechain-node
+  name: ceiba-node
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "belizechain.labels" . | nindent 4 }}
-    app: belizechain-node
+    app: ceiba-node
 spec:
-  serviceName: belizechain-node
+  serviceName: ceiba-node
   replicas: {{ .Values.blockchainNode.replicaCount }}
   selector:
     matchLabels:
-      app: belizechain-node
+      app: ceiba-node
   template:
     metadata:
       labels:
-        app: belizechain-node
+        app: ceiba-node
         {{- include "belizechain.selectorLabels" . | nindent 8 }}
     spec:
       containers:
-        - name: belizechain-node
+        - name: ceiba-node
           image: "{{ .Values.blockchainNode.image.repository }}:{{ .Values.blockchainNode.image.tag }}"
           imagePullPolicy: {{ .Values.blockchainNode.image.pullPolicy }}
           ports:

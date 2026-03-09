@@ -2,11 +2,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: belizechain-node
+  name: ceiba-node
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "belizechain.labels" . | nindent 4 }}
-    app: belizechain-node
+    app: ceiba-node
 spec:
   type: {{ .Values.blockchainNode.service.type }}
   ports:
@@ -23,5 +23,5 @@ spec:
       protocol: TCP
       name: ws
   selector:
-    app: belizechain-node
+    app: ceiba-node
 {{- end }}
